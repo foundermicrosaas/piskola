@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FF8A3D">
+  <title>🔐 Admin — Piskola</title>
+  <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../icons/icon-apple-180.png">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <section class="screen active" id="screen-admin">
+    <header class="topbar sub">
+      <a class="back-btn" href="../index.html" aria-label="Kembali ke aplikasi">⬅️</a>
+      <h2>🔐 Admin</h2>
+      <a class="back-btn" href="../index.html" aria-label="Kembali">🏠</a>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="analytics">📊 Analitik</button>
+      <button class="tab" data-tab="users">👧 Pengguna</button>
+      <button class="tab" data-tab="voice">🔊 Suara</button>
+    </div>
+
+    <div id="admin-analytics" class="tab-panel"></div>
+    <div id="admin-users" class="tab-panel hidden"></div>
+    <div id="admin-voice" class="tab-panel hidden">
+      <div class="admin-card">
+        <h3>🔊 Suara ElevenLabs</h3>
+        <p class="admin-note">Isi API Key dan <b>dua voice</b>: satu untuk <b>tutor perempuan</b> dan satu
+        untuk <b>tutor laki-laki</b>. Setiap anak bisa memilih tutornya di Pengaturan → Tutor suara.
+        Ucapan dipakai <b>pelan & ceria</b> (kecepatan 0.7–0.8) dan hasilnya di-cache di perangkat
+        supaya hemat kredit. Jika kosong/gagal, aplikasi otomatis memakai suara bawaan browser.</p>
+        <p id="el-state" class="admin-status"></p>
+        <label class="field-label" for="el-api-key">API Key</label>
+        <input id="el-api-key" type="password" placeholder="xi-api-key..." autocomplete="off">
+        <label class="field-label" for="el-female-voice">👩 Voice ID — Tutor Perempuan</label>
+        <div class="voice-id-row">
+          <input id="el-female-voice" placeholder="contoh: 21m00Tcm4TlvDq8ikWAM" autocomplete="off">
+          <button class="btn btn-secondary sm" data-voices-for="female">📋</button>
+        </div>
+        <label class="field-label" for="el-male-voice">👨 Voice ID — Tutor Laki-laki</label>
+        <div class="voice-id-row">
+          <input id="el-male-voice" placeholder="contoh: 21m00Tcm4TlvDq8ikWAM" autocomplete="off">
+          <button class="btn btn-secondary sm" data-voices-for="male">📋</button>
+        </div>
+        <p class="admin-note">Tombol <b>📋</b> mengambil daftar voice asli dari akunmu (pakai API key
+        di atas) supaya Voice ID tidak salah ketik. Voice bahasa Indonesia ditandai <b>🇮🇩</b>.</p>
+        <div id="el-voices" class="el-voices hidden"></div>
+        <hr style="margin:16px 0;border:none;border-top:2px dashed #f0dcc0">
+        <h4 style="margin:0 0 6px">💾 Mode Server (hemat kredit — disarankan)</h4>
+        <p class="admin-note">Centang untuk memakai <b>cache audio di server</b>: setiap teks di-generate
+        <b>sekali untuk semua user & semua HP</b>, lalu dipanggil ulang tanpa kredit. API key cukup di
+        server (file <code>server/.env</code>) — tidak perlu diisi di sini. Setup: lihat <b>DEPLOY.md</b>.</p>
+        <label class="field-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="el-server-tts" style="width:20px;height:20px">
+          Gunakan server TTS (proxy /tts)
+        </label>
+        <label class="field-label" for="el-server-url">URL server TTS</label>
+        <input id="el-server-url" placeholder="/tts" autocomplete="off">
+        <label class="field-label" for="el-server-token">Token server (opsional — jika diisi di server)</label>
+        <input id="el-server-token" type="password" placeholder="kosongkan jika tidak pakai token" autocomplete="off">
+        <hr style="margin:16px 0;border:none;border-top:2px dashed #f0dcc0">
+        <label class="field-label" for="el-speed">Kecepatan bicara: <span id="el-speed-label">0.75</span></label>
+        <input type="range" id="el-speed" min="0.7" max="1.2" step="0.05" value="0.75">
+        <label class="field-label" for="el-test-gender">Uji dengan suara:</label>
+        <select id="el-test-gender">
+          <option value="female">👩 Perempuan</option>
+          <option value="male">👨 Laki-laki</option>
+        </select>
+        <div class="admin-actions">
+          <button class="btn btn-secondary sm" id="btn-el-test">🔊 Uji Suara</button>
+          <button class="btn btn-primary sm" id="btn-el-save">💾 Simpan</button>
+        </div>
+        <p id="el-status" class="admin-status"></p>
+      </div>
+      <div class="admin-card" style="margin-top:14px">
+        <h3>💡 Tips voice bahasa Indonesia</h3>
+        <p class="admin-note">Gunakan tombol <b>📋</b> untuk memilih voice asli dari akunmu (hindari salah
+        ketik Voice ID). Untuk bahasa Indonesia, pilih voice bertanda <b>id</b>. Pastikan API key punya izin
+        <b>text-to-speech</b> (buat key baru dengan akses penuh di dashboard ElevenLabs jika muncul error
+        <i>missing the permission text_to_speech</i>).</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="../js/store.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

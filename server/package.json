@@ -1,0 +1,14 @@
+{
+  "name": "piskola-tts-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Proxy TTS ElevenLabs dengan cache di disk (hemat kredit API). Zero dependency, Node 18+.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "warm": "node warm.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

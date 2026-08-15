@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FF8A3D">
+  <meta name="description" content="Piskola — aplikasi belajar membaca & berhitung interaktif untuk SD kelas 1: game seru, suara pelan, dan pujian.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Piskola">
+  <title>Piskola — Kakak Pintar! 🐰</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-apple-180.png">
+  <link rel="preload" href="fonts/patrick-hand.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/baloo2-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== Layar: Splash ===== -->
+  <section class="screen active" id="screen-splash">
+    <div class="splash-inner">
+      <div class="mascot-big">🐰</div>
+      <h1 class="logo">Pis<span>kola</span></h1>
+      <p class="tagline">Ayo belajar sambil bermain!</p>
+      <button class="btn btn-primary btn-huge" id="btn-start">Mulai 🚀</button>
+    </div>
+    <div class="floaties">
+      <span class="floaty f1">⭐</span><span class="floaty f2">🎈</span>
+      <span class="floaty f3">☁️</span><span class="floaty f4">🦋</span>
+    </div>
+  </section>
+
+  <!-- ===== Layar: Login ===== -->
+  <section class="screen" id="screen-login">
+    <div class="login-inner">
+      <div class="step-emoji">👋</div>
+      <h2 class="login-title">Siapa yang belajar hari ini?</h2>
+      <p class="login-hint">Pilih akun, lalu masukkan PIN 4 angka.</p>
+      <div id="login-accounts" class="login-accounts"></div>
+      <div class="login-pin-row hidden" id="login-pin-row">
+        <input id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="off">
+        <button class="btn btn-primary" id="btn-login-go">Masuk ➡️</button>
+      </div>
+      <p id="login-error" class="login-error"></p>
+      <button class="btn btn-secondary" id="btn-to-register">✨ Daftar Akun Baru</button>
+    </div>
+  </section>
+
+  <!-- ===== Layar: Register ===== -->
+  <section class="screen" id="screen-register">
+    <div class="step active">
+      <div class="step-emoji">🐣</div>
+      <h2>Daftar Akun Baru</h2>
+      <input id="reg-name" type="text" maxlength="12" placeholder="Nama anak" autocomplete="off" spellcheck="false">
+      <div class="reg-block">
+        <p class="reg-label">Panggilan</p>
+        <div class="panggilan-row">
+          <button class="panggilan-btn" data-reg-pg="kakak">
+            <span class="pg-emoji">👧</span><span class="pg-label">Kakak</span>
+          </button>
+          <button class="panggilan-btn" data-reg-pg="adek">
+            <span class="pg-emoji">🧒</span><span class="pg-label">Adek</span>
+          </button>
+        </div>
+      </div>
+      <div class="reg-block">
+        <p class="reg-label">Pilih avatar</p>
+        <div class="avatar-grid">
+          <button class="avatar-btn" data-reg-av="🐰">🐰</button>
+          <button class="avatar-btn" data-reg-av="🐱">🐱</button>
+          <button class="avatar-btn" data-reg-av="🐻">🐻</button>
+          <button class="avatar-btn" data-reg-av="🦊">🦊</button>
+          <button class="avatar-btn" data-reg-av="🐼">🐼</button>
+        </div>
+      </div>
+      <div class="reg-block">
+        <p class="reg-label">Buat PIN 4 angka</p>
+        <div class="pin-pair">
+          <input id="reg-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="new-password">
+          <input id="reg-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="Ulangi PIN" autocomplete="new-password">
+        </div>
+      </div>
+      <p id="reg-error" class="login-error"></p>
+      <button class="btn btn-primary" id="btn-register">Daftar 🎉</button>
+      <button class="btn btn-secondary" id="btn-register-back">⬅️ Kembali</button>
+    </div>
+  </section>
+
+  <!-- ===== Layar: Home ===== -->
+  <section class="screen" id="screen-home">
+    <header class="topbar">
+      <div class="greeting-card">
+        <span class="greeting-avatar" id="greeting-emoji">🐰</span>
+        <div class="greeting-text">
+          <h2 id="greeting-text">Halo!</h2>
+          <p id="greeting-sub">Ayo belajar membaca</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="btn-sound" aria-label="Suara">🔊</button>
+        <button class="icon-btn" id="btn-settings" aria-label="Pengaturan">⚙️</button>
+      </div>
+    </header>
+    <div class="home-tabs tabs">
+      <button class="tab active" data-tab="baca">📖 Belajar Baca</button>
+      <button class="tab" data-tab="hitung">🔢 Belajar Hitung</button>
+    </div>
+    <div id="pro-banner" class="hidden"></div>
+    <h3 class="section-title" id="section-title">📚 Peta Belajar Membaca</h3>
+    <div id="unit-list"></div>
+  </section>
+
+  <!-- ===== Layar: Unit ===== -->
+  <section class="screen" id="screen-unit">
+    <header class="topbar sub">
+      <button class="back-btn" id="btn-back-home" aria-label="Kembali">⬅️</button>
+      <h2 id="unit-title">Unit 1</h2>
+    </header>
+    <div id="game-list"></div>
+  </section>
+
+  <!-- ===== Layar: Game ===== -->
+  <section class="screen" id="screen-game">
+    <header class="topbar sub">
+      <button class="back-btn" id="btn-back-unit" aria-label="Kembali">⬅️</button>
+      <h2 id="game-title">Tebak Huruf</h2>
+      <span class="game-progress" id="game-progress"></span>
+    </header>
+    <div id="game-area"></div>
+  </section>
+
+  <!-- ===== Modal: Pengaturan ===== -->
+  <div class="modal hidden" id="settings-modal">
+    <div class="modal-card">
+      <h3>⚙️ Pengaturan</h3>
+      <label class="field-label" for="set-name">Nama anak</label>
+      <input id="set-name" type="text" maxlength="12">
+      <label class="field-label">Panggilan</label>
+      <div class="panggilan-row small">
+        <button class="panggilan-btn sm" data-set-panggilan="kakak">👧 Kakak</button>
+        <button class="panggilan-btn sm" data-set-panggilan="adek">🧒 Adek</button>
+      </div>
+      <label class="field-label">Avatar (hewan lucu)</label>
+      <div class="avatar-grid small">
+        <button class="avatar-btn" data-set-avatar="🐰">🐰</button>
+        <button class="avatar-btn" data-set-avatar="🐱">🐱</button>
+        <button class="avatar-btn" data-set-avatar="🐻">🐻</button>
+        <button class="avatar-btn" data-set-avatar="🦊">🦊</button>
+        <button class="avatar-btn" data-set-avatar="🐼">🐼</button>
+      </div>
+      <label class="field-label">Tutor suara</label>
+      <div class="tutor-row">
+        <button class="panggilan-btn sm" data-set-tutor="female">👩 Perempuan</button>
+        <button class="panggilan-btn sm" data-set-tutor="male">👨 Laki-laki</button>
+      </div>
+      <label class="tutor-muslim">
+        <input type="checkbox" id="set-muslim"> 🕌 Tutor muslim
+        <small>Suasana islami: Assalamu'alaikum, MasyaAllah, Alhamdulillah</small>
+      </label>
+      <div class="modal-actions">
+        <button class="btn btn-secondary sm" id="btn-save-settings">Simpan</button>
+      </div>
+      <button class="btn btn-secondary sm" id="btn-clear-progress">🧹 Hapus progres anak ini</button>
+      <button class="btn btn-secondary sm danger" id="btn-delete-profile">🗑️ Hapus akun anak ini</button>
+      <button class="btn btn-secondary sm" id="btn-logout">🔓 Keluar</button>
+      <p class="settings-note">Hapus progres hanya menghapus bintang & nilai anak ini — akun tetap aman.</p>
+      <button class="modal-close" id="btn-close-settings">Tutup ✕</button>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Instal PWA ===== -->
+  <div class="modal hidden" id="install-modal">
+    <div class="modal-card install-card">
+      <div class="install-emoji">📲</div>
+      <h3>Pasang Aplikasinya!</h3>
+      <p class="install-text" id="install-ios">
+        Yuk pasang <b>Piskola</b> di layar utama HP-mu biar bisa dibuka tanpa browser:
+        ketuk ikon <b>Bagikan</b> ⬆️ lalu pilih <b>“Tambahkan ke Layar Utama”</b>.
+      </p>
+      <p class="install-text hidden" id="install-android">
+        Pasang <b>Piskola</b> di HP-mu — buka langsung dari layar utama, seperti aplikasi biasa!
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary sm" id="btn-install-later">Nanti saja</button>
+        <button class="btn btn-primary sm" id="btn-install-go">📲 Pasang Sekarang</button>
+      </div>
+      <button class="modal-close" id="btn-install-close">Tutup ✕</button>
+    </div>
+  </div>
+
+  <!-- ===== Overlay: Hasil Game ===== -->
+  <div class="modal hidden" id="game-overlay"></div>
+
+</div>
+<script src="js/store.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/confetti.js"></script>
+<script src="js/letters.js"></script>
+<script src="js/game-tebak.js"></script>
+<script src="js/game-tracing.js"></script>
+<script src="js/game-sambung.js"></script>
+<script src="js/game-pasangan.js"></script>
+<script src="js/game-memory.js"></script>
+<script src="js/game-urutan.js"></script>
+<script src="js/game-balon.js"></script>
+<script src="js/game-kuis.js"></script>
+<script src="js/game-hilang.js"></script>
+<script src="js/game-susun.js"></script>
+<script src="js/game-math.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

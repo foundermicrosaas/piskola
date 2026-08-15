@@ -1,0 +1,948 @@
+/* ============================================================
+   Piskola — Prototipe PWA
+   Palet ceria + animasi ramah anak (mobile-first)
+   ============================================================ */
+
+:root {
+  --sun: #FFD23F;
+  --orange: #FF8A3D;
+  --teal: #2EC4B6;
+  --sky: #3A86FF;
+  --pink: #FF70A6;
+  --green: #80ED99;
+  --yellow: #FFE66D;
+  --ink: #40324d;
+  --card: #ffffff;
+  --radius: 26px;
+  --shadow: 0 6px 0 rgba(64, 50, 77, 0.14), 0 14px 28px rgba(64, 50, 77, 0.10);
+}
+
+/* Font handwriting untuk panduan tracing — di-bundle lokal (Patrick Hand,
+   lisensi SIL OFL — lihat fonts/OFL-PatrickHand.txt). */
+@font-face {
+  font-family: 'TraceHand';
+  src: url('../fonts/patrick-hand.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Baloo 2 (variabel 500–800) di-bundle lokal (lisensi SIL OFL —
+   lihat fonts/OFL-Baloo2.txt) supaya offline penuh & tanpa CDN. */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('../fonts/baloo2-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('../fonts/baloo2-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('../fonts/baloo2-viet.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('../fonts/baloo2-devanagari.woff2') format('woff2');
+  unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+20F0, U+25CC, U+A830-A839, U+A8E0-A8FF, U+11B00-11B09;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: 'Baloo 2', 'Comic Sans MS', 'Segoe UI', system-ui, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(160deg, #FFF3D6 0%, #FFE9F1 48%, #DFF6F2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  min-height: 100dvh;
+  touch-action: manipulation;
+  overflow-x: hidden;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- Layar ---------- */
+.screen {
+  display: none;
+  flex-direction: column;
+  padding: 18px 18px 48px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  animation: screenIn 0.35s ease;
+}
+.screen.active { display: flex; }
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Tombol ---------- */
+.btn {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 28px;
+  cursor: pointer;
+  color: #fff;
+  background: var(--teal);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.16), 0 12px 22px rgba(0, 0, 0, 0.10);
+  transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
+  touch-action: manipulation;
+  user-select: none;
+  min-height: 56px;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: translateY(5px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.16); }
+.btn-primary { background: linear-gradient(180deg, var(--orange), #f26d2e); }
+.btn-secondary { background: var(--card); color: var(--ink); }
+.btn-huge { font-size: 1.5rem; padding: 18px 46px; animation: popIn 0.5s 0.2s both; }
+.btn.sm { font-size: 1rem; padding: 12px 18px; min-height: 46px; }
+
+.icon-btn {
+  font-size: 1.4rem;
+  width: 52px; height: 52px;
+  border-radius: 18px;
+  border: none;
+  background: var(--card);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.10);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+.icon-btn:active { transform: translateY(3px); }
+
+/* ---------- Splash ---------- */
+#screen-splash { justify-content: center; align-items: center; text-align: center; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; z-index: 2; }
+.mascot-big { font-size: 6rem; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 10px 14px rgba(0,0,0,0.18)); }
+.logo { font-size: 2.6rem; line-height: 1.05; margin: 10px 0 0; color: var(--sky); font-weight: 800; }
+.logo span { color: var(--orange); }
+.tagline { font-size: 1.25rem; font-weight: 700; color: #8a7a99; margin: 4px 0 26px; }
+
+.floaties { position: absolute; inset: 0; pointer-events: none; }
+.floaty { position: absolute; font-size: 2rem; opacity: 0.5; animation: float 6s ease-in-out infinite; }
+.f1 { top: 12%; left: 10%; animation-delay: 0s; }
+.f2 { top: 22%; right: 12%; animation-delay: 1.2s; }
+.f3 { bottom: 24%; left: 14%; animation-delay: 2.1s; font-size: 2.6rem; }
+.f4 { bottom: 18%; right: 16%; animation-delay: 0.6s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-14px) rotate(3deg); }
+}
+
+/* ---------- Onboarding ---------- */
+#screen-onboarding { justify-content: center; }
+.step { display: none; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 10px 0; }
+.step.active { display: flex; animation: popIn 0.3s ease; }
+.step-emoji { font-size: 4.2rem; animation: float 3s ease-in-out infinite; }
+.step h2 { margin: 0; font-size: 1.8rem; color: var(--sky); }
+.step-hint { margin: 0; color: #8a7a99; font-weight: 600; }
+
+#input-name {
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+  padding: 16px 20px;
+  border: 4px solid var(--sun);
+  border-radius: 22px;
+  outline: none;
+  background: var(--card);
+  color: var(--ink);
+}
+#input-name:focus { border-color: var(--orange); }
+
+.panggilan-row { display: flex; gap: 16px; }
+.panggilan-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 150px; padding: 20px 10px;
+  border: 5px solid transparent;
+  border-radius: var(--radius);
+  background: var(--card);
+  font-family: inherit; font-weight: 800; font-size: 1.5rem; color: var(--ink);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.panggilan-btn:active { transform: scale(0.96); }
+.panggilan-btn.selected { border-color: var(--orange); background: #fff3e6; }
+.pg-emoji { font-size: 3.2rem; }
+.panggilan-row.small { gap: 10px; }
+.panggilan-btn.sm { width: auto; padding: 12px 18px; font-size: 1.1rem; flex-direction: row; }
+.panggilan-btn.sm .pg-emoji { font-size: 1.6rem; }
+
+.avatar-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.avatar-btn {
+  font-size: 2.6rem;
+  width: 76px; height: 76px;
+  border: 5px solid transparent;
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.avatar-btn:active { transform: scale(0.92); }
+.avatar-btn.selected { border-color: var(--pink); background: #ffeef5; transform: scale(1.08); }
+.avatar-grid.small .avatar-btn { width: 60px; height: 60px; font-size: 2rem; border-radius: 18px; }
+
+/* ---------- Topbar / Home ---------- */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.topbar.sub { justify-content: flex-start; }
+.topbar.sub h2 { margin: 0 0 0 8px; flex: 1; font-size: 1.35rem; }
+.back-btn {
+  font-size: 1.3rem; width: 48px; height: 48px;
+  border: none; border-radius: 16px; background: var(--card);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.10); cursor: pointer;
+}
+.back-btn:active { transform: translateY(3px); }
+a.back-btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+
+.greeting-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  box-shadow: var(--shadow);
+  flex: 1;
+  min-width: 0;
+}
+.greeting-avatar { font-size: 2.8rem; }
+.greeting-text { min-width: 0; }
+.greeting-text h2 { margin: 0; font-size: 1.35rem; color: var(--sky); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.greeting-text p { margin: 0; color: #8a7a99; font-weight: 600; }
+.topbar-actions { display: flex; flex-direction: column; gap: 10px; }
+
+.section-title { margin: 8px 2px 12px; font-size: 1.3rem; color: var(--ink); }
+
+/* ---------- Kartu Unit ---------- */
+.unit-card {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  background: var(--card);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  font-family: inherit; text-align: left; color: var(--ink);
+  transition: transform 0.1s;
+}
+.unit-card:active { transform: scale(0.98); }
+.unit-emoji {
+  font-size: 2.4rem;
+  width: 66px; height: 66px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff1c4, #ffe08a);
+}
+.unit-info { flex: 1; min-width: 0; }
+.unit-info h3 { margin: 0; font-size: 1.15rem; }
+.unit-info p { margin: 2px 0 0; color: #8a7a99; font-weight: 600; font-size: 0.9rem; }
+.unit-meta { font-size: 0.85rem; font-weight: 700; color: var(--orange); white-space: nowrap; }
+
+/* ---------- Daftar Game ---------- */
+.game-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.game-emoji {
+  font-size: 2rem;
+  width: 58px; height: 58px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 18px;
+  background: #e7f7ff;
+}
+.game-info { flex: 1; min-width: 0; }
+.game-info h3 { margin: 0; font-size: 1.1rem; }
+.game-info p { margin: 2px 0 6px; color: #8a7a99; font-weight: 600; font-size: 0.85rem; }
+.btn-play { min-height: 48px; padding: 10px 20px; font-size: 1.05rem; border-radius: 18px; }
+
+.star-row { display: inline-flex; gap: 2px; }
+.star { font-size: 1.1rem; filter: grayscale(1) opacity(0.35); }
+.star.on { filter: none; animation: starPop 0.35s ease; }
+.star-row.big .star { font-size: 2.6rem; }
+@keyframes starPop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+/* ---------- Game: Tebak Huruf ---------- */
+.game-question {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+.game-question p { margin: 0; font-size: 1.1rem; font-weight: 700; color: #8a7a99; }
+.btn-speaker {
+  font-size: 3.4rem;
+  width: 96px; height: 96px;
+  border: none; border-radius: 50%;
+  background: linear-gradient(180deg, var(--sun), #ffb91d);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.btn-speaker:active { transform: translateY(5px); animation: none; }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+.btn-replay { min-height: 44px; padding: 10px 22px; font-size: 1rem; }
+
+.letter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.letter-tile {
+  font-family: inherit;
+  font-size: clamp(4rem, 22vw, 6rem);
+  font-weight: 800;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.letter-tile:active { transform: scale(0.95); }
+.tile-0 { background: linear-gradient(180deg, #ffe9a8, #ffd76b); }
+.tile-1 { background: linear-gradient(180deg, #bfeef8, #8fd9ec); }
+.tile-2 { background: linear-gradient(180deg, #ffd3e2, #ffb3cd); }
+.tile-3 { background: linear-gradient(180deg, #d2f3d8, #a8e6b4); }
+.letter-tile.correct {
+  background: linear-gradient(180deg, var(--green), #4fd67c);
+  color: #fff;
+  animation: popCorrect 0.45s ease;
+}
+.letter-tile.wrong { animation: shake 0.45s ease; background: #ffc9c9; }
+
+@keyframes popCorrect {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18) rotate(-4deg); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px) rotate(-3deg); }
+  75% { transform: translateX(10px) rotate(3deg); }
+}
+
+/* ---------- Game: Tracing ---------- */
+.trace-top { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px; }
+.trace-letter {
+  font-size: 6rem; font-weight: 400; line-height: 1;
+  font-family: 'TraceHand', 'Comic Sans MS', 'Segoe UI', cursive;
+  color: var(--sky);
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+}
+.trace-hint { text-align: center; margin: 0 0 10px; font-weight: 700; color: #8a7a99; }
+.canvas-wrap {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+}
+#trace-canvas { display: block; width: 100%; height: 340px; touch-action: none; }
+.trace-controls { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.trace-controls .btn { flex: 1; }
+.letter-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
+.letter-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #e4d9ee;
+  transition: background 0.2s, transform 0.2s;
+}
+.letter-dot.done { background: var(--green); transform: scale(1.15); }
+.letter-dot.now { background: var(--sun); animation: pulse 1.2s infinite; }
+
+/* ---------- Modal ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(64, 50, 77, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-card {
+  background: var(--card);
+  border-radius: 28px;
+  padding: 24px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
+  text-align: center;
+  animation: popIn 0.3s ease;
+}
+.modal-card h3 { margin: 0 0 14px; font-size: 1.5rem; }
+.modal-card input {
+  font-family: inherit; font-size: 1.2rem; font-weight: 700; text-align: center;
+  width: 100%; padding: 12px 16px; margin: 6px 0 12px;
+  border: 3px solid var(--sun); border-radius: 16px; outline: none;
+}
+.field-label { display: block; text-align: left; font-weight: 700; color: #8a7a99; font-size: 0.9rem; margin-top: 6px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.modal-actions .btn { flex: 1; }
+.modal-close {
+  position: absolute; top: 12px; right: 14px;
+  border: none; background: none; font-family: inherit; font-weight: 700;
+  color: #8a7a99; font-size: 0.95rem; cursor: pointer; padding: 6px;
+}
+
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ---------- Overlay hasil game ---------- */
+.result-card { text-align: center; }
+.result-emoji { font-size: 4.4rem; animation: float 2.5s ease-in-out infinite; }
+.result-card h3 { margin: 4px 0 6px; font-size: 1.9rem; color: var(--orange); }
+.result-card p { margin: 10px 0 18px; font-weight: 700; color: #8a7a99; font-size: 1.1rem; }
+.result-sub { margin: 0 0 12px !important; font-size: 1.05rem !important; color: #7a6b8a !important; }
+.result-acc { margin: 12px 0 16px !important; color: #5b4a6e !important; font-size: 1.15rem !important; }
+.result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.result-actions .btn { flex: 1 1 30%; min-width: 106px; }
+.btn-share { background: #25D366; color: #fff; }
+.btn-share:active { transform: scale(0.96); }
+
+/* ---------- Panel Bagikan hasil belajar ---------- */
+.share-panel {
+  margin-top: 16px; padding-top: 14px;
+  border-top: 2px dashed #e5d9f0;
+  animation: popIn 0.25s ease;
+}
+.share-title { margin: 0 0 10px !important; font-size: 1.05rem !important; color: var(--sky) !important; }
+.share-preview {
+  width: 165px; border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  margin: 0 auto 12px; display: block;
+}
+.share-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.share-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 6px; border-radius: 16px;
+  border: 2px solid #e5d9f0; background: #fff;
+  font-family: inherit; font-weight: 800; font-size: 0.9rem; color: #5b4a6e;
+}
+.share-opt span { font-size: 1.6rem; }
+.share-opt:active { transform: scale(0.95); }
+.share-note { margin: 10px 0 0 !important; font-size: 0.85rem !important; font-weight: 600 !important; }
+
+/* ---------- Confetti ---------- */
+#confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+
+/* ---------- Game: Sambung Huruf ---------- */
+.sambung-stage {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  height: 230px;
+  overflow: hidden;
+  touch-action: none;
+}
+.sambung-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sambung-dot {
+  position: absolute;
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.2rem; font-weight: 800;
+  text-transform: lowercase;
+  box-shadow: var(--shadow);
+  user-select: none;
+}
+.sambung-dot.start {
+  left: 9%; top: 50%; transform: translateY(-50%);
+  background: linear-gradient(180deg, #ffe9a8, #ffd76b);
+}
+.sambung-dot.end {
+  right: 9%; top: 50%; transform: translateY(-50%);
+  background: linear-gradient(180deg, #bfeef8, #8fd9ec);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.sambung-result {
+  margin: 14px auto 0;
+  text-align: center;
+  font-size: 1.6rem; font-weight: 800;
+  color: var(--teal);
+  animation: popIn 0.3s ease;
+}
+.sambung-q {
+  margin-top: 14px;
+  text-align: center;
+  animation: popIn 0.3s ease;
+}
+.sambung-q p { font-size: 1.1rem; font-weight: 700; color: #8a7a99; margin: 0 0 12px; }
+.sambung-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sambung-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 10px;
+  border: none; border-radius: 20px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  font-family: inherit; font-weight: 700; color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+.sambung-opt:active { transform: scale(0.95); }
+.sambung-opt .so-emoji { font-size: 2.4rem; }
+.sambung-opt .so-word { font-size: 1.1rem; }
+.sambung-opt.correct { background: var(--green); animation: popCorrect 0.45s ease; }
+.sambung-opt.wrong { background: #ffc9c9; animation: shake 0.45s ease; }
+
+/* ---------- Tabs & Admin ---------- */
+.tabs {
+  display: flex; gap: 10px;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 6px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.tab {
+  flex: 1;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 8px;
+  font-family: inherit; font-weight: 800; font-size: 1rem;
+  background: transparent; color: #8a7a99;
+  cursor: pointer;
+}
+.tab.active { background: var(--orange); color: #fff; }
+
+.admin-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.admin-card h3 { margin: 0 0 8px; }
+.admin-note { color: #8a7a99; font-weight: 600; font-size: 0.9rem; margin: 0 0 14px; }
+.admin-card input[type="text"],
+.admin-card input[type="password"] {
+  font-family: inherit; font-size: 1.05rem;
+  width: 100%; padding: 12px 14px; margin: 6px 0 12px;
+  border: 3px solid var(--sun); border-radius: 14px; outline: none;
+}
+.admin-card input[type="range"] { width: 100%; margin: 4px 0 12px; }
+.admin-actions { display: flex; gap: 10px; margin-top: 6px; }
+.admin-actions .btn { flex: 1; }
+.admin-status { font-weight: 700; color: var(--teal); margin: 12px 0 0; min-height: 1.2em; }
+
+.admin-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 2px 12px; }
+.admin-head h3 { margin: 0; }
+
+.user-form { background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.user-form input { font-family: inherit; font-size: 1.1rem; padding: 12px 14px; border: 3px solid var(--sun); border-radius: 14px; outline: none; }
+.user-form.inline { margin: 0 0 10px; }
+
+.user-list { display: flex; flex-direction: column; gap: 10px; }
+.user-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card);
+  border-radius: 20px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+}
+.user-row.active { border: 3px solid var(--green); }
+.user-avatar { font-size: 2.2rem; }
+.user-info { flex: 1; min-width: 0; }
+.user-info b { font-size: 1.05rem; display: block; }
+.user-info small { color: #8a7a99; font-weight: 600; }
+.user-actions { display: flex; gap: 6px; }
+.btn.danger { color: #d64545; }
+.empty { color: #8a7a99; text-align: center; font-weight: 700; }
+
+/* Select profil */
+.modal-card select {
+  font-family: inherit; font-size: 1.05rem; font-weight: 700;
+  width: 100%; padding: 12px 14px; margin: 6px 0 12px;
+  border: 3px solid var(--sun); border-radius: 14px; outline: none;
+  background: var(--card); color: var(--ink);
+}
+.admin-link { width: 100%; margin-top: 10px; }
+
+/* ---------- Login & Register ---------- */
+#screen-login, #screen-register { justify-content: center; }
+.login-inner { display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.login-title { margin: 0; font-size: 1.6rem; color: var(--sky); }
+.login-hint { margin: 0; color: #8a7a99; font-weight: 600; }
+.login-accounts { display: flex; flex-direction: column; gap: 10px; }
+.account-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 3px solid transparent;
+  border-radius: 20px; padding: 12px 16px;
+  box-shadow: var(--shadow); cursor: pointer; font-family: inherit;
+}
+.account-row:active { transform: scale(0.98); }
+.account-row.selected { border-color: var(--orange); background: #fff3e6; }
+.account-avatar { font-size: 2.2rem; }
+.account-name { font-weight: 800; font-size: 1.2rem; color: var(--ink); flex: 1; text-align: left; }
+.account-tag { color: #8a7a99; font-weight: 700; }
+.login-pin-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+#login-pin {
+  flex: 1; font-family: inherit; font-size: 1.6rem; letter-spacing: 8px; text-align: center;
+  padding: 12px; border: 4px solid var(--sun); border-radius: 16px; outline: none; background: var(--card);
+}
+.login-error { color: #d64545; font-weight: 700; margin: 0; min-height: 1.2em; }
+.reg-block { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-top: 6px; }
+.reg-label { margin: 0; font-weight: 700; color: #8a7a99; font-size: 0.95rem; }
+#reg-name {
+  font-family: inherit; font-size: 1.5rem; font-weight: 700; text-align: center;
+  width: 100%; max-width: 300px; padding: 16px 20px;
+  border: 4px solid var(--sun); border-radius: 22px; outline: none; background: var(--card); color: var(--ink);
+}
+.pin-pair { display: flex; gap: 10px; }
+.pin-pair input {
+  width: 120px; font-family: inherit; font-size: 1.4rem; letter-spacing: 6px; text-align: center;
+  padding: 12px; border: 4px solid var(--sun); border-radius: 16px; outline: none; background: var(--card);
+}
+
+/* ---------- Font huruf untuk game huruf ---------- */
+.trace-font { font-family: 'TraceHand', 'Comic Sans MS', 'Segoe UI', cursive; font-weight: 400; }
+
+/* ---------- Game: Pilihan (kuis / urutan / hilang) ---------- */
+.match-hint { text-align: center; font-weight: 700; color: #8a7a99; margin: 0 0 12px; }
+.quiz-prompt {
+  text-align: center; background: var(--card); border-radius: var(--radius);
+  padding: 16px; box-shadow: var(--shadow); margin-bottom: 8px;
+}
+.quiz-emoji { font-size: 3rem; line-height: 1.1; }
+.quiz-emoji.big { font-size: 4.6rem; display: block; text-align: center; margin: 6px 0; }
+.quiz-word { font-size: 1.6rem; font-weight: 800; }
+.quiz-word.missing { color: var(--pink); background: #ffeef5; border-radius: 8px; padding: 0 8px; }
+.quiz-word-row { text-align: center; font-size: 2rem; margin-top: 4px; }
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.choice-grid.three { grid-template-columns: repeat(3, 1fr); }
+.choice-btn {
+  border: none; border-radius: 20px; min-height: 96px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit; font-weight: 800; color: var(--ink);
+  cursor: pointer; box-shadow: var(--shadow); font-size: 1.5rem; padding: 10px;
+}
+.choice-btn:active { transform: scale(0.96); }
+.choice-btn.correct { animation: popCorrect 0.45s ease; }
+.choice-btn.wrong { animation: shake 0.45s ease; }
+.choice-btn.done { pointer-events: none; }
+
+/* ---------- Game: Urutan Huruf ---------- */
+.seq-row { display: flex; gap: 10px; justify-content: center; margin: 12px 0 6px; }
+.seq-slot {
+  width: 64px; height: 74px; display: flex; align-items: center; justify-content: center;
+  border-radius: 16px; background: #fff3d6; border: 3px solid var(--sun); font-size: 2.2rem;
+}
+.seq-slot.empty { background: #fff; border-style: dashed; }
+
+/* ---------- Game: Balon ---------- */
+.balloon-stage {
+  position: relative; height: 300px; overflow: hidden;
+  background: linear-gradient(180deg, #bfeef8, #e7f7ff);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  touch-action: none;
+}
+.balloon {
+  position: absolute; bottom: -110px; width: 76px; height: 100px;
+  border: none; background: none; cursor: pointer; padding: 0;
+  animation: balloonRise 6s linear infinite;
+}
+.balloon-fill {
+  position: absolute; left: 6px; top: 0; width: 64px; height: 80px;
+  border-radius: 50% 50% 46% 46%;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), transparent 45%),
+    linear-gradient(180deg, var(--pink), #e04f8f);
+  box-shadow: inset -6px -8px 12px rgba(0,0,0,0.12);
+}
+.balloon:nth-child(odd) .balloon-fill { background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), transparent 45%), linear-gradient(180deg, var(--teal), #1d9d91); }
+.balloon:nth-child(3n) .balloon-fill { background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), transparent 45%), linear-gradient(180deg, var(--sun), #f5a623); }
+.balloon-label {
+  position: absolute; top: 22px; left: 0; width: 76px; text-align: center;
+  font-size: 1.5rem; font-weight: 800; color: #fff; z-index: 2;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.25); pointer-events: none;
+}
+.balloon-string { position: absolute; top: 76px; left: 37px; width: 2px; height: 34px; background: #b8a5c9; pointer-events: none; }
+.balloon.pop { animation: none; transform: scale(1.6); opacity: 0; transition: transform 0.35s, opacity 0.35s; pointer-events: none; }
+.balloon.wrong { animation-play-state: paused; }
+.balloon.wrong .balloon-fill { animation: shake 0.4s ease; filter: grayscale(0.7); }
+@keyframes balloonRise {
+  0% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-260px) rotate(1.5deg); }
+  100% { transform: translateY(-520px) rotate(-1deg); }
+}
+
+/* ---------- Game: Kartu Pasangan (memory) ---------- */
+.mem-grid { display: grid; gap: 10px; }
+.mem-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.mem-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+.mem-card {
+  position: relative; aspect-ratio: 1;
+  border: none; border-radius: 16px;
+  background: var(--sky); color: #fff;
+  font-family: inherit; font-weight: 800; cursor: pointer;
+  box-shadow: var(--shadow); font-size: 1.7rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.mem-card:active { transform: scale(0.96); }
+.mem-card .mem-front { display: none; color: var(--ink); }
+.mem-card .mem-front.emoji { font-size: 2.4rem; }
+.mem-card .mem-front.trace-font { font-size: 2.6rem; }
+.mem-card.flipped { background: var(--card); }
+.mem-card.flipped .mem-front { display: block; animation: popIn 0.25s ease; }
+.mem-card.matched { background: var(--green); pointer-events: none; transform: scale(0.95); }
+.mem-card.matched .mem-front { color: #fff; display: block; }
+
+/* ---------- Game: Pasangan (hubungkan) ---------- */
+.match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.match-col { display: flex; flex-direction: column; gap: 10px; }
+.match-item {
+  min-height: 64px; border: none; border-radius: 18px;
+  background: var(--card); box-shadow: var(--shadow);
+  font-family: inherit; font-weight: 800; font-size: 1.5rem; color: var(--ink);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 8px;
+}
+.match-item.picked { border: 4px solid var(--sky); transform: scale(1.04); }
+.match-item.matched { background: var(--green); pointer-events: none; }
+.match-item.wrong { animation: shake 0.4s ease; background: #ffc9c9; }
+.match-item.target { font-size: 2.5rem; }
+
+/* ---------- Game: Susun Kata ---------- */
+.build-slots { display: flex; gap: 10px; justify-content: center; margin: 12px 0 20px; flex-wrap: wrap; }
+.build-slot {
+  width: 58px; height: 62px; border: 3px dashed #cbb9dd; border-radius: 14px;
+  background: #f6effc; display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; color: var(--ink);
+}
+.build-slot.filled { border-style: solid; border-color: var(--green); background: #eafff0; animation: popIn 0.25s ease; }
+.build-tiles { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.build-tile {
+  min-width: 56px; height: 60px; padding: 0 14px;
+  border: none; border-radius: 14px; background: var(--card);
+  box-shadow: var(--shadow); font-size: 1.9rem; color: var(--ink);
+  cursor: pointer;
+}
+.build-tile:active { transform: scale(0.94); }
+.build-tile.used { opacity: 0.25; pointer-events: none; }
+.build-tile.wrong { animation: shake 0.4s ease; }
+
+/* ---------- Admin: Analitik ---------- */
+.tab-panel { animation: screenIn 0.3s ease; }
+.stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat-card {
+  background: var(--card); border-radius: 20px; padding: 14px 10px;
+  box-shadow: var(--shadow); text-align: center; display: flex; flex-direction: column; gap: 2px;
+}
+.stat-num { font-size: 1.9rem; font-weight: 800; color: var(--orange); }
+.stat-lbl { font-size: 0.8rem; font-weight: 700; color: #8a7a99; }
+.unit-stat { margin-bottom: 14px; }
+.unit-stat-name { display: block; font-weight: 800; font-size: 0.98rem; }
+.unit-stat-meta { display: block; color: #8a7a99; font-weight: 700; font-size: 0.85rem; margin: 2px 0 6px; }
+.bar { height: 14px; border-radius: 8px; background: #f0e6f8; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--teal), var(--green)); transition: width 0.5s ease; }
+.analytics-user {
+  background: var(--card); border-radius: 20px; padding: 12px 14px;
+  box-shadow: var(--shadow); margin-bottom: 12px;
+}
+.analytics-user-head { display: flex; align-items: center; gap: 10px; }
+.analytics-user-head .user-info { flex: 1; min-width: 0; }
+.analytics-metrics {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0;
+}
+.analytics-metrics span {
+  background: #f3ecfa; border-radius: 10px; padding: 4px 10px;
+  font-size: 0.82rem; font-weight: 700; color: var(--ink);
+}
+.user-unit-detail {
+  margin-top: 10px; border-top: 2px dashed #eadcf5; padding-top: 8px;
+}
+.user-unit {
+  display: flex; justify-content: space-between; gap: 10px;
+  font-size: 0.85rem; font-weight: 700; padding: 4px 0;
+  color: var(--ink);
+}
+.user-unit span:last-child { color: var(--orange); white-space: nowrap; }
+
+/* ---------- Admin: daftar voice ElevenLabs ---------- */
+.voice-id-row { display: flex; gap: 10px; }
+.voice-id-row input { flex: 1; }
+.el-voices { margin-top: 4px; }
+.voice-pick { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+.voice-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  border: 3px solid transparent; border-radius: 14px;
+  background: #f7f1fb; padding: 10px 12px;
+  font-family: inherit; font-weight: 700; color: var(--ink); cursor: pointer;
+  text-align: left;
+}
+.voice-item.id { border-color: var(--green); background: #eafff0; }
+.voice-item.picked { border-color: var(--orange); background: #fff3e6; }
+.vi-name { font-size: 0.95rem; }
+.vi-meta { font-size: 0.75rem; color: #8a7a99; word-break: break-all; }
+
+/* ---------- Modal: Instal PWA ---------- */
+.install-card { max-width: 340px; }
+.install-emoji { font-size: 3.6rem; animation: float 2.6s ease-in-out infinite; }
+.install-text { color: #8a7a99; font-weight: 600; font-size: 0.98rem; margin: 0 0 4px; }
+
+/* ---------- Pengaturan: catatan & tombol hapus ---------- */
+.settings-note { font-size: 0.8rem; color: #a892b8; font-weight: 600; margin: 10px 0 4px; }
+#btn-clear-progress, #btn-delete-profile { width: 100%; }
+
+/* ---------- Tab Belajar Baca / Hitung ---------- */
+.home-tabs { margin-bottom: 14px; }
+
+/* ---------- Badge PRO & kartu game terkunci ---------- */
+.pro-badge {
+  display: inline-block;
+  background: linear-gradient(180deg, #ffc93d, var(--orange));
+  color: #fff; font-size: 0.68rem; font-weight: 800;
+  padding: 3px 9px; border-radius: 12px;
+  vertical-align: middle; letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(255, 138, 61, 0.4);
+}
+.game-card.locked {
+  opacity: 0.92; cursor: pointer;
+  background: linear-gradient(180deg, #fbf6ff, #f4ecfb);
+  border: 2px dashed #d9c6ec;
+}
+.game-card.locked:active { transform: scale(0.98); }
+.game-card.locked .game-emoji.dim { filter: grayscale(1) opacity(0.55); }
+.locked-note { font-size: 0.8rem; font-weight: 700; color: #b08bcc; }
+.lock-ico { font-size: 1.6rem; }
+
+/* ---------- Banner ajakan PRO di beranda ---------- */
+.pro-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: linear-gradient(90deg, #fff3cf, #ffe4b0);
+  border: 3px solid var(--sun);
+  border-radius: 22px; padding: 12px 14px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  animation: popIn 0.4s ease;
+}
+.pro-banner-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pro-banner-emoji { font-size: 2rem; }
+.pro-banner-info b { display: block; font-size: 1.05rem; color: var(--orange); }
+.pro-banner-info span { font-size: 0.82rem; color: #8a7a99; font-weight: 600; }
+.pro-banner .btn { min-height: 44px; padding: 10px 16px; font-size: 0.95rem; border-radius: 16px; }
+
+/* ---------- Level unit (Belajar Hitung) ---------- */
+.unit-level {
+  display: inline-block; font-size: 0.7rem; font-weight: 800;
+  padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; color: #fff;
+}
+.unit-level.mudah { background: var(--green); }
+.unit-level.sedang { background: var(--sky); }
+.unit-level.sulit { background: var(--pink); }
+.unit-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+
+/* ---------- Pengaturan: tutor suara & tutor muslim ---------- */
+.tutor-row { display: flex; gap: 10px; }
+.tutor-row .panggilan-btn { flex: 1; justify-content: center; }
+.tutor-muslim {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  margin: 10px 0 4px; padding: 10px;
+  border: 3px solid #d9c6ec; border-radius: 16px;
+  background: #f7f1fb; cursor: pointer;
+  font-weight: 800; color: var(--ink);
+}
+.tutor-muslim input { width: 22px; height: 22px; accent-color: var(--teal); margin: 0; }
+.tutor-muslim small { font-weight: 600; color: #8a7a99; font-size: 0.78rem; }
+
+/* ---------- Game: Belajar Hitung ---------- */
+.math-big {
+  font-size: clamp(2.6rem, 16vw, 4.2rem);
+  font-weight: 800; text-align: center; line-height: 1.15;
+  color: var(--ink); padding: 6px 0;
+}
+.math-big.math-op { font-size: clamp(2.4rem, 14vw, 3.6rem); color: var(--sky); }
+.math-blank {
+  display: inline-block; min-width: 1.4em;
+  color: var(--pink); background: #ffeef5;
+  border-radius: 10px; padding: 0 8px;
+}
+.count-row {
+  display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
+  font-size: 1.9rem; max-width: 300px; margin: 6px auto 0;
+}
+.count-row.many { font-size: 1.25rem; }
+.compare-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.compare-btn {
+  font-family: inherit; font-weight: 800; font-size: 2.6rem;
+  min-width: 108px; min-height: 108px;
+  border: none; border-radius: 24px; cursor: pointer;
+  background: linear-gradient(180deg, #ffe9a8, #ffd76b);
+  box-shadow: var(--shadow); color: var(--ink);
+  transition: transform 0.1s;
+}
+.compare-btn:active { transform: scale(0.94); }
+.compare-btn.correct { background: var(--green); animation: popCorrect 0.45s ease; }
+.compare-btn.wrong { animation: shake 0.45s ease; background: #ffc9c9; }
+.compare-vs { font-size: 1.4rem; font-weight: 800; color: #a892b8; }
+.math-table { display: flex; flex-direction: column; gap: 6px; margin: 4px auto 0; max-width: 260px; }
+.math-table-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: #fff7e0; border-radius: 12px; padding: 6px 14px;
+  font-weight: 800; font-size: 1.05rem;
+}
+.mt-label { color: var(--ink); }
+.mt-eq { color: #a892b8; }
+.mt-val { color: var(--teal); font-size: 1.2rem; }
+.mt-val.blank {
+  color: var(--pink); background: #ffeef5; border-radius: 8px;
+  min-width: 2em; text-align: center;
+}
+.story-text { font-size: 1.15rem; font-weight: 700; color: var(--ink); margin: 6px auto 0; max-width: 300px; line-height: 1.5; }
+.mem-card .mem-front.math-text { font-size: 1.05rem; }
+.build-slot.ok { background: var(--green); border-color: var(--green); animation: popCorrect 0.4s ease; }
+
+/* ---------- Halaman PRO ---------- */
+.pro-game-cat { font-size: 1rem; margin: 12px 2px 6px; color: var(--sky); }
+.pro-game-cat:first-child { margin-top: 0; }
+
+/* ---------- Mobile polish: notched phone & safe-area ---------- */
+.screen { padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
+.topbar { padding-top: env(safe-area-inset-top); }
+html { -webkit-text-size-adjust: 100%; }
+button { touch-action: manipulation; }
+
+/* ---------- Aksesibilitas ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

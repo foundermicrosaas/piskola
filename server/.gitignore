@@ -1,0 +1,5 @@
+# Audio yang di-generate server (cache) — jangan di-commit
+audio-cache/
+
+# API key & token server — rahasia
+.env
