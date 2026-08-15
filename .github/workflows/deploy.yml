@@ -3,7 +3,7 @@ name: Deploy ke VPS Piskola
 on:
   push:
     branches:
-      - main
+      - piskola
 
 jobs:
   deploy:
@@ -20,5 +20,5 @@ jobs:
           port: 22
           script: |
             cd /var/www/piskola
-            git pull origin main
+            git pull origin piskola
             echo "Deploy selesai: $(date)"
