@@ -340,8 +340,7 @@ window.AudioSys = (() => {
               stability: 0.45,          // sedikit rendah → lebih ekspresif & semangat
               similarity_boost: 0.85,
               style: 0.55,              // lebih antusias
-              use_speaker_boost: true,
-              speed                     // < 1 = pelan; naik sedikit untuk pujian
+              use_speaker_boost: true
             }
           }),
           signal: ctrl.signal
