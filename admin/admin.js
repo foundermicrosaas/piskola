@@ -2,10 +2,79 @@
    - 📊 Analitik: ringkasan + rincian per unit dan per pengguna
    - 👧 Pengguna: lihat, daftar, edit, hapus, pilih aktif
    - 🔊 Suara: konfigurasi ElevenLabs + tombol uji
+   - ⚙️ Pengaturan: ganti password & logout
    Data dibaca langsung dari localStorage via Store (berbagi dengan aplikasi). */
 (function () {
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+  /* ==================== AUTH / LOGIN ==================== */
+
+  const ADMIN_PW_KEY  = 'admin_password';
+  const ADMIN_SESSION = 'admin_auth';
+  const DEFAULT_PW    = 'piskola123';
+
+  function getStoredPw() {
+    return localStorage.getItem(ADMIN_PW_KEY) || DEFAULT_PW;
+  }
+
+  function isAuthenticated() {
+    return sessionStorage.getItem(ADMIN_SESSION) === '1';
+  }
+
+  function doLogin(pw) {
+    if (pw === getStoredPw()) {
+      sessionStorage.setItem(ADMIN_SESSION, '1');
+      $('#login-overlay').classList.add('hidden');
+      init();
+      return true;
+    }
+    return false;
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem(ADMIN_SESSION);
+    location.reload();
+  }
+
+  /* Pasang event login */
+  (function setupLogin() {
+    const overlay  = $('#login-overlay');
+    const pwInput  = $('#login-password');
+    const errEl    = $('#login-error');
+    const btnLogin = $('#btn-login');
+    const btnToggle = $('#toggle-pw');
+
+    /* Jika sudah auth di sesi ini, langsung masuk */
+    if (isAuthenticated()) {
+      overlay.classList.add('hidden');
+      init();
+      return;
+    }
+
+    btnToggle.addEventListener('click', () => {
+      const show = pwInput.type === 'password';
+      pwInput.type = show ? 'text' : 'password';
+      btnToggle.textContent = show ? '🙈' : '👁️';
+    });
+
+    function tryLogin() {
+      errEl.textContent = '';
+      pwInput.classList.remove('shake');
+      const ok = doLogin(pwInput.value);
+      if (!ok) {
+        pwInput.value = '';
+        pwInput.classList.add('shake');
+        errEl.textContent = '❌ Password salah, coba lagi.';
+        setTimeout(() => pwInput.classList.remove('shake'), 450);
+        pwInput.focus();
+      }
+    }
+
+    btnLogin.addEventListener('click', tryLogin);
+    pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
+  })();
+
 
   const UNIT_META = [
     { id: 'kapital-1', title: 'Unit 1 — Huruf Kapital A–I', emoji: '🔠' },
@@ -53,6 +122,7 @@
     $('#admin-analytics').classList.toggle('hidden', tab !== 'analytics');
     $('#admin-users').classList.toggle('hidden', tab !== 'users');
     $('#admin-voice').classList.toggle('hidden', tab !== 'voice');
+    $('#admin-settings').classList.toggle('hidden', tab !== 'settings');
     if (tab === 'analytics') renderAnalytics();
     if (tab === 'users') renderUsers();
     if (tab === 'voice') renderVoice();
@@ -492,13 +562,48 @@
     }
   }
 
+  /* ==================== PENGATURAN (GANTI PW + LOGOUT) ==================== */
+
+  function wireSettings() {
+    const statusEl = $('#settings-status');
+
+    $('#btn-change-pw').addEventListener('click', () => {
+      statusEl.textContent = '';
+      const oldPw  = $('#settings-old-pw').value;
+      const newPw  = $('#settings-new-pw').value;
+      const newPw2 = $('#settings-new-pw2').value;
+
+      if (oldPw !== getStoredPw()) {
+        statusEl.textContent = '❌ Password lama salah.';
+        return;
+      }
+      if (newPw.length < 6) {
+        statusEl.textContent = '❌ Password baru minimal 6 karakter.';
+        return;
+      }
+      if (newPw !== newPw2) {
+        statusEl.textContent = '❌ Konfirmasi password tidak cocok.';
+        return;
+      }
+      localStorage.setItem(ADMIN_PW_KEY, newPw);
+      $('#settings-old-pw').value = '';
+      $('#settings-new-pw').value = '';
+      $('#settings-new-pw2').value = '';
+      statusEl.textContent = '✅ Password berhasil diganti!';
+    });
+
+    $('#btn-logout').addEventListener('click', () => {
+      if (confirm('Yakin ingin keluar dari sesi admin?')) doLogout();
+    });
+  }
+
   /* ==================== INIT ==================== */
 
   function init() {
     $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
     wireVoice();
+    wireSettings();
     switchTab('analytics');
   }
 
-  init();
 })();

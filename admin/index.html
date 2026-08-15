@@ -8,8 +8,143 @@
   <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../icons/icon-apple-180.png">
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Login Overlay ── */
+    #login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(160deg, #FFF3D6 0%, #FFE9F1 48%, #DFF6F2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #login-overlay.hidden { display: none; }
+    .login-box {
+      background: #fff;
+      border-radius: 32px;
+      box-shadow: 0 8px 0 rgba(64,50,77,0.12), 0 20px 48px rgba(64,50,77,0.13);
+      padding: 40px 32px 36px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      animation: loginPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes loginPop {
+      from { opacity: 0; transform: scale(0.85) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .login-emoji { font-size: 64px; line-height: 1; margin-bottom: 8px; }
+    .login-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #40324d;
+      margin: 0 0 4px;
+    }
+    .login-sub {
+      font-size: 0.9rem;
+      color: #a08cb0;
+      margin: 0 0 28px;
+    }
+    .login-input-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    #login-password {
+      width: 100%;
+      padding: 14px 48px 14px 18px;
+      border: 2.5px solid #f0dcc0;
+      border-radius: 16px;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.05rem;
+      color: #40324d;
+      background: #fff9f0;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    #login-password:focus { border-color: #FF8A3D; background: #fff; }
+    #login-password.shake {
+      animation: shake 0.4s ease;
+      border-color: #ff4d6d;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-8px); }
+      40%      { transform: translateX(8px); }
+      60%      { transform: translateX(-5px); }
+      80%      { transform: translateX(5px); }
+    }
+    #toggle-pw {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+      line-height: 1;
+    }
+    #login-error {
+      color: #e63946;
+      font-size: 0.85rem;
+      margin: -8px 0 14px;
+      min-height: 20px;
+      font-weight: 600;
+    }
+    #btn-login {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #FF8A3D, #ff6b1a);
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #cc5500;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #btn-login:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #cc5500;
+    }
+    .login-footer {
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: #c4b0d4;
+    }
+  </style>
 </head>
 <body>
+
+<!-- ══ LOGIN OVERLAY ══ -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-emoji">🔐</div>
+    <h1 class="login-title">Area Admin</h1>
+    <p class="login-sub">Piskola — Kakak Pintar 🐰</p>
+    <div class="login-input-wrap">
+      <input
+        id="login-password"
+        type="password"
+        placeholder="Masukkan password..."
+        autocomplete="current-password"
+        autofocus
+      >
+      <button id="toggle-pw" type="button" aria-label="Tampilkan password">👁️</button>
+    </div>
+    <p id="login-error"></p>
+    <button id="btn-login" type="button">Masuk →</button>
+    <p class="login-footer">Password default: <b>piskola123</b><br>Ganti di tab Pengaturan setelah login.</p>
+  </div>
+</div>
+
 <div id="app">
 
   <section class="screen active" id="screen-admin">
@@ -23,6 +158,7 @@
       <button class="tab active" data-tab="analytics">📊 Analitik</button>
       <button class="tab" data-tab="users">👧 Pengguna</button>
       <button class="tab" data-tab="voice">🔊 Suara</button>
+      <button class="tab" data-tab="settings">⚙️ Pengaturan</button>
     </div>
 
     <div id="admin-analytics" class="tab-panel"></div>
@@ -85,6 +221,30 @@
         <i>missing the permission text_to_speech</i>).</p>
       </div>
     </div>
+
+    <!-- Tab Pengaturan -->
+    <div id="admin-settings" class="tab-panel hidden">
+      <div class="admin-card">
+        <h3>⚙️ Pengaturan Admin</h3>
+        <p class="admin-note">Ganti password login halaman admin. Password disimpan di perangkat ini.</p>
+        <label class="field-label" for="settings-old-pw">Password Saat Ini</label>
+        <input id="settings-old-pw" type="password" placeholder="Password lama..." autocomplete="current-password">
+        <label class="field-label" for="settings-new-pw">Password Baru</label>
+        <input id="settings-new-pw" type="password" placeholder="Password baru..." autocomplete="new-password">
+        <label class="field-label" for="settings-new-pw2">Konfirmasi Password Baru</label>
+        <input id="settings-new-pw2" type="password" placeholder="Ulangi password baru..." autocomplete="new-password">
+        <div class="admin-actions">
+          <button class="btn btn-primary sm" id="btn-change-pw">🔐 Simpan Password</button>
+        </div>
+        <p id="settings-status" class="admin-status"></p>
+      </div>
+      <div class="admin-card" style="margin-top:14px">
+        <h3>🚪 Keluar</h3>
+        <p class="admin-note">Akhiri sesi admin. Kamu perlu login kembali untuk mengakses halaman ini.</p>
+        <button class="btn btn-secondary sm" id="btn-logout">🚪 Keluar dari Admin</button>
+      </div>
+    </div>
+
   </section>
 
 </div>
