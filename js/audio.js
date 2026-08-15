@@ -111,6 +111,7 @@ window.AudioSys = (() => {
   let elChain = Promise.resolve();
   let speakChain = Promise.resolve();
   let elFailedUntil = 0;   // jeda fallback setelah kegagalan API
+  let elCfgKey = '';       // fingerprint konfigurasi terakhir untuk deteksi perubahan
 
   /* Pilih acak tanpa mengulang pilihan terakhir */
   function pick(arr, key) {
@@ -148,8 +149,11 @@ window.AudioSys = (() => {
       serverToken: s.serverToken || ''
     };
   }
-  /* Konfigurasi yang dipakai sekarang (profil aktif; fallback ke setelan lama). */
+  /* Konfigurasi yang dipakai sekarang: selalu baca SEGAR dari localStorage
+     agar pengaturan yang disimpan di Admin langsung aktif tanpa perlu reload.
+     elCfg hanya dipakai sebagai cache internal; selalu di-refresh dulu. */
   function effectiveCfg() {
+    refreshEl(); // selalu ambil terbaru dari localStorage
     return elCfgFor(Store.getProfile()) || elCfg;
   }
 
@@ -158,11 +162,13 @@ window.AudioSys = (() => {
     const hasDirect = !!(s.apiKey && (s.voiceId || s.femaleVoiceId || s.maleVoiceId));
     const hasServer = !!(s.serverTts && s.serverUrl && (s.femaleVoiceId || s.maleVoiceId || s.voiceId));
     elCfg = (hasDirect || hasServer) ? s : null;
-    elFailedUntil = 0; // setelan baru → coba lagi
+    // Reset cooldown jika konfigurasi berubah (deteksi via fingerprint)
+    const newKey = (s.apiKey || '') + '|' + (s.femaleVoiceId || '') + '|' + (s.maleVoiceId || '') + '|' + (s.voiceId || '') + '|' + (s.serverUrl || '');
+    if (newKey !== elCfgKey) { elCfgKey = newKey; elFailedUntil = 0; }
   }
   refreshEl();
-  // Jika konfigurasi disimpan/berubah di tab lain (halaman Admin), ambil segera.
-  window.addEventListener('storage', () => refreshEl());
+  // Juga saat tab lain mengubah localStorage (misal: admin dan user di dua tab)
+  window.addEventListener('storage', () => { refreshEl(); elFailedUntil = 0; });
 
   let dbPromise = null;
   /* DB lama (sebelum rebrand) — hanya dibaca sebagai cadangan sekali,
@@ -314,16 +320,26 @@ window.AudioSys = (() => {
     const gen = cancelGen;
     const serverMode = !!(cfg.serverTts && cfg.serverUrl);
 
+    /* Kembalikan promise PER-ITEM (bukan elChain) agar .then(r=>) di playText
+       selalu mendapat hasil yang tepat untuk teks ini, bukan hasil dari
+       item lain yang di-queue sebelumnya (race condition lama). */
+    let resolveItem, rejectItem;
+    const itemPromise = new Promise((res, rej) => { resolveItem = res; rejectItem = rej; });
+
     elChain = elChain.then(() =>
       cacheGet(key).then(hit => {
-        if (gen !== cancelGen) return { ok: false, msg: 'dibatalkan' }; // sudah di-flush
-        if (hit) return play ? playBlob(hit).then(() => ({ ok: true, msg: 'cache' })) : { ok: true, msg: 'cache' };
+        if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
+        if (hit) {
+          const p = play ? playBlob(hit).then(() => ({ ok: true, msg: 'cache' })) : Promise.resolve({ ok: true, msg: 'cache' });
+          return p.then(r => { resolveItem(r); return r; });
+        }
 
         /* Mode server: server meng-generate & meng-cache sekali untuk SEMUA user */
         if (serverMode) {
           return serverSpeak(cfg, text, speed, play).then(r => {
             if (r.ok && r.blob) cacheSet(key, r.blob);
-            if (!r.ok && !cfgOverride && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000;
+            if (!r.ok && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000;
+            resolveItem(r);
             return r;
           });
         }
@@ -337,33 +353,45 @@ window.AudioSys = (() => {
             text,
             model_id: 'eleven_multilingual_v2',
             voice_settings: {
-              stability: 0.45,          // sedikit rendah → lebih ekspresif & semangat
+              stability: 0.45,
               similarity_boost: 0.85,
-              style: 0.55,              // lebih antusias
+              style: 0.55,
               use_speaker_boost: true
             }
           }),
           signal: ctrl.signal
         }).then(async (res) => {
           clearTimeout(to);
-          if (gen !== cancelGen) return { ok: false, msg: 'dibatalkan' };
+          if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
           if (!res.ok) {
             const detail = await res.text().catch(() => '');
             console.warn('[ElevenLabs] gagal (' + res.status + '):', detail.slice(0, 300));
-            return { ok: false, msg: 'ElevenLabs ' + res.status + ' ' + detail.slice(0, 160) };
+            const r = { ok: false, msg: 'ElevenLabs ' + res.status + ' ' + detail.slice(0, 160) };
+            elFailedUntil = Date.now() + 30000;
+            resolveItem(r);
+            return r;
           }
           const blob = await res.blob();
-          if (gen !== cancelGen) return { ok: false, msg: 'dibatalkan' };
+          if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
           cacheSet(key, blob);
-          return play ? playBlob(blob).then(() => ({ ok: true, msg: 'ok' })) : { ok: true, msg: 'ok' };
-        }).catch(err => ({ ok: false, msg: 'Gagal terhubung: ' + err.message })).then(r => {
+          if (play) {
+            return playBlob(blob).then(() => { const r = { ok: true, msg: 'ok' }; resolveItem(r); return r; });
+          }
+          const r = { ok: true, msg: 'ok' }; resolveItem(r); return r;
+        }).catch(err => {
           clearTimeout(to);
-          if (!r.ok && !cfgOverride && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000; // 30 dtk fallback
+          const r = { ok: false, msg: 'Gagal terhubung: ' + err.message };
+          if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000;
+          resolveItem(r);
           return r;
         });
+      }).catch(err => {
+        const r = { ok: false, msg: 'Error internal: ' + err.message };
+        resolveItem(r);
+        return r;
       })
     );
-    return elChain;
+    return itemPromise; // ← per-item, bukan seluruh chain
   }
 
   function stopAudio() {
@@ -393,14 +421,15 @@ window.AudioSys = (() => {
   /* Ucapkan; panggil onEnd saat selesai (agar antrean lanjut). */
   function wsSpeak(text, opts, onEnd) {
     if (muted || !window.speechSynthesis) { if (onEnd) onEnd(); return; }
+    const o = opts || {};
     try {
       // Bug Android: speechSynthesis kadang 'macet' setelah cancel — resume() menyegarkannya
       if (window.speechSynthesis.resume) { try { window.speechSynthesis.resume(); } catch (e) { } }
       const u = new SpeechSynthesisUtterance(text);
       if (voice) u.voice = voice;
       u.lang = 'id-ID';
-      u.rate = opts.rate ?? 0.78;
-      u.pitch = opts.pitch ?? 1.12;
+      u.rate = o.rate ?? 0.78;
+      u.pitch = o.pitch ?? 1.12;
       if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
       speechSynthesis.speak(u);
     } catch (e) { if (onEnd) onEnd(); }
@@ -412,20 +441,23 @@ window.AudioSys = (() => {
     return new Promise((resolve) => {
       let settled = false;
       const finish = () => { if (!settled) { settled = true; resolve(); } };
-      const guard = setTimeout(finish, 10000); // pengaman: jangan menggantung antrean
+      const guard = setTimeout(finish, 12000); // pengaman: jangan menggantung antrean
       const done = () => { clearTimeout(guard); finish(); };
 
       const cfg = effectiveCfg();
       if (cfg) {
-        elSpeak(text, cfg, { rate: opts.rate }).then(r => {
-          if (r.ok) done();          // audio sudah diputar & selesai (playBlob menunggu akhir)
-          else {
-            if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 20000; // gagal → coba lagi nanti
-            wsSpeak(text, opts, done);
+        elSpeak(text, cfg, { rate: opts ? opts.rate : null }).then(r => {
+          if (r && r.ok) {
+            done(); // audio ElevenLabs sudah diputar & selesai
+          } else {
+            // ElevenLabs gagal → fallback ke Web Speech
+            const msg = (r && r.msg) || '';
+            console.info('[Audio] ElevenLabs fallback:', msg);
+            wsSpeak(text, opts || {}, done);
           }
-        });
+        }).catch(() => wsSpeak(text, opts || {}, done));
       } else {
-        wsSpeak(text, opts, done);
+        wsSpeak(text, opts || {}, done);
       }
     });
   }
@@ -451,6 +483,7 @@ window.AudioSys = (() => {
      nama/panggilan siap tanpa memakai kredit lagi setelahnya. Memakai voice
      sesuai tutor gender profil aktif. */
   function prewarm(text) {
+    refreshEl();
     const cfg = elCfgFor(Store.getProfile()) || elCfg;
     if (!cfg || muted || !text) return;
     elSpeak(text, cfg, { play: false }).catch(() => { });
