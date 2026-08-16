@@ -56,15 +56,17 @@ const EL_BASE = 'https://api.elevenlabs.io';
 fs.mkdirSync(CACHE_DIR, { recursive: true });
 
 function cacheFile(voice, speed, text) {
-  const h = crypto.createHash('sha1').update(voice + '|' + speed + '|' + text).digest('hex');
-  return path.join(CACHE_DIR, `${voice.slice(0, 8)}-${speed}-${h}.mp3`);
+  const h = crypto.createHash('md5').update(text.trim().toLowerCase()).digest('hex');
+  // Hapus speed dari nama file cache (agar tidak generate file baru untuk teks yg sama walau speed berubah).
+  // Speed sekarang di-handle murni oleh browser (playbackRate).
+  return path.join(CACHE_DIR, `${voice.slice(0, 8)}-${h}.mp3`);
 }
 
 /* Generate (kalau belum ada) lalu kembalikan path file MP3.
    Dipakai oleh endpoint /tts DAN skrip warm.js (pra-generasi). */
 async function ttsFile(text, voice, speed, log) {
-  const sp = Math.max(0.7, Math.min(1.2, Number(speed) || 0.75));
-  const file = cacheFile(voice, sp, text);
+  // sp tidak lagi mempengaruhi API ElevenLabs, tapi kita biarkan saja sbg argumen utk backward compatibility
+  const file = cacheFile(voice, speed, text);
   if (fs.existsSync(file)) return { ok: true, file, cached: true };
   if (!API_KEY) return { ok: false, msg: 'ELEVENLABS_API_KEY belum diisi' };
   if (ALLOWED.length && !ALLOWED.includes(voice)) return { ok: false, msg: 'voice tidak diizinkan' };

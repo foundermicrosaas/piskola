@@ -146,7 +146,8 @@ window.AudioSys = (() => {
       speed: Number(s.speed) || 0.75,
       serverTts: !!s.serverTts,
       serverUrl: s.serverUrl || '',
-      serverToken: s.serverToken || ''
+      serverToken: s.serverToken || '',
+      gender: (p && p.tutorGender === 'male') ? 'male' : 'female'
     };
   }
   /* Konfigurasi yang dipakai sekarang: selalu baca SEGAR dari localStorage
@@ -230,10 +231,12 @@ window.AudioSys = (() => {
   }
 
   /* Putar blob; resolve saat selesai (atau dipotong/error). */
-  function playBlob(blob) {
+  function playBlob(blob, speed, volume) {
     return new Promise((resolve) => {
       const url = URL.createObjectURL(blob);
       const a = new Audio(url);
+      if (speed && speed !== 1) a.playbackRate = speed;
+      if (volume && volume !== 1) a.volume = Math.max(0, Math.min(1, volume));
       let done = false;
       const finish = () => {
         if (done) return;
@@ -275,7 +278,7 @@ window.AudioSys = (() => {
   /* Mode SERVER: server memegang API key, meng-generate sekali per teks,
      menyimpan MP3 ke disk, lalu memutar ulang (0 kredit). Endpoint:
      {serverUrl}?text=..&voice=..&speed=..[&token=..] → audio/mpeg */
-  function serverSpeak(cfg, text, speed, play) {
+  function serverSpeak(cfg, text, speed, volume, play) {
     const url = new URL(cfg.serverUrl, location.href);
     // Normalisasi: pastikan berakhir dengan /tts (mis. user mengisi domain saja)
     if (!/\/tts$/i.test(url.pathname)) url.pathname = url.pathname.replace(/\/+$/, '') + '/tts';
@@ -298,7 +301,7 @@ window.AudioSys = (() => {
         const blob = await res.blob();
         if (gen !== cancelGen) return { ok: false, msg: 'dibatalkan' };
         return play
-          ? playBlob(blob).then(() => ({ ok: true, msg: 'ok', blob }))
+          ? playBlob(blob, speed, volume).then(() => ({ ok: true, msg: 'ok', blob }))
           : { ok: true, msg: 'ok' }; // cukup generate & cache di server
       })
       .catch(err => ({ ok: false, msg: 'Gagal terhubung: ' + err.message }));
@@ -310,13 +313,27 @@ window.AudioSys = (() => {
      ANTI-MACET: fetch dibatasi 10 dtk (AbortController) dan antrean selalu
      berjalan, jadi permintaan yang menggantung TIDAK pernah membuat suara
      berikutnya (atau tombol 'dengar lagi') ikut macet. */
-  function elSpeak(text, cfgOverride, opts) {
+  function elSpeak(rawText, cfgOverride, opts) {
     const cfg = cfgOverride || elCfg;
     const play = opts ? opts.play !== false : true;
     if (!cfg) return Promise.resolve({ ok: false, msg: 'ElevenLabs belum dikonfigurasi' });
     if (Date.now() < elFailedUntil) return Promise.resolve({ ok: false, msg: 'fallback (kegagalan sebelumnya)' });
+    
+    // Perbaikan pelafalan untuk 1 huruf (ElevenLabs v2 sering baca bahasa Inggris)
+    let text = rawText.trim();
+    if (/^[A-Za-z]$/.test(text)) {
+      const map = {
+        'a': 'a', 'b': 'bé', 'c': 'cé', 'd': 'dé', 'e': 'é', 'f': 'èf', 'g': 'gé', 'h': 'ha', 'i': 'i', 'j': 'jé',
+        'k': 'ka', 'l': 'èl', 'm': 'èm', 'n': 'èn', 'o': 'o', 'p': 'pé', 'q': 'qi', 'r': 'èr', 's': 'ès', 't': 'té',
+        'u': 'u', 'v': 'vi', 'w': 'wé', 'x': 'èks', 'y': 'yé', 'z': 'zèt'
+      };
+      text = map[text.toLowerCase()] || text;
+    }
+    
     const speed = elSpeedFor(cfg, opts ? opts.rate : null);
-    const key = cfg.voiceId + '|' + speed + '|' + text; // kunci cache termasuk kecepatan
+    const volume = cfg.gender === 'female' ? 0.6 : 1.0; // Turunkan volume tutor perempuan agar seimbang
+    const key = cfg.voiceId + '|' + text; // kunci cache TIDAK TERMASUK kecepatan agar bisa ganti kecepatan tanpa potong pulsa/kuota
+    
     const gen = cancelGen;
     const serverMode = !!(cfg.serverTts && cfg.serverUrl);
 
@@ -330,13 +347,13 @@ window.AudioSys = (() => {
       cacheGet(key).then(hit => {
         if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
         if (hit) {
-          const p = play ? playBlob(hit).then(() => ({ ok: true, msg: 'cache' })) : Promise.resolve({ ok: true, msg: 'cache' });
+          const p = play ? playBlob(hit, speed, volume).then(() => ({ ok: true, msg: 'cache' })) : Promise.resolve({ ok: true, msg: 'cache' });
           return p.then(r => { resolveItem(r); return r; });
         }
 
         /* Mode server: server meng-generate & meng-cache sekali untuk SEMUA user */
         if (serverMode) {
-          return serverSpeak(cfg, text, speed, play).then(r => {
+          return serverSpeak(cfg, text, speed, volume, play).then(r => {
             if (r.ok && r.blob) cacheSet(key, r.blob);
             if (!r.ok && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000;
             resolveItem(r);
@@ -375,7 +392,7 @@ window.AudioSys = (() => {
           if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
           cacheSet(key, blob);
           if (play) {
-            return playBlob(blob).then(() => { const r = { ok: true, msg: 'ok' }; resolveItem(r); return r; });
+            return playBlob(blob, speed, volume).then(() => { const r = { ok: true, msg: 'ok' }; resolveItem(r); return r; });
           }
           const r = { ok: true, msg: 'ok' }; resolveItem(r); return r;
         }).catch(err => {
