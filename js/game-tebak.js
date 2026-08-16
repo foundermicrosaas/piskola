@@ -24,9 +24,6 @@ window.GameTebak = (() => {
     timers = [];
     round = 0; correct = 0; attempts = 0; streak = 0; busy = false;
     
-    // Siapkan audio di background agar instan saat diklik
-    items.forEach(item => AudioSys.prewarmItem(item));
-    
     const area = document.getElementById('game-area');
     const progressEl = document.getElementById('game-progress');
     const ROUNDS = 8;

@@ -23,9 +23,6 @@ window.GameSambung = (() => {
     active = true;
     timers = [];
     round = 0; correct = 0; attempts = 0; streak = 0; busy = false; connected = false;
-    
-    // Siapkan audio suku kata di background
-    syllables.forEach(sy => AudioSys.prewarmItem(sy));
 
     const area = document.getElementById('game-area');
     const progressEl = document.getElementById('game-progress');

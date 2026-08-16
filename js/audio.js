@@ -346,7 +346,7 @@ window.AudioSys = (() => {
         if (serverMode) {
           return serverSpeak(cfg, text, speed, volume, play).then(r => {
             if (r.ok && r.blob) cacheSet(key, r.blob);
-            if (!r.ok && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000;
+            if (!r.ok && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 2000;
             resolveItem(r);
             return r;
           });
@@ -375,7 +375,7 @@ window.AudioSys = (() => {
             const detail = await res.text().catch(() => '');
             console.warn('[ElevenLabs] gagal (' + res.status + '):', detail.slice(0, 300));
             const r = { ok: false, msg: 'ElevenLabs ' + res.status + ' ' + detail.slice(0, 160) };
-            elFailedUntil = Date.now() + 30000;
+            elFailedUntil = Date.now() + 2000;
             resolveItem(r);
             return r;
           }
@@ -389,7 +389,7 @@ window.AudioSys = (() => {
         }).catch(err => {
           clearTimeout(to);
           const r = { ok: false, msg: 'Gagal terhubung: ' + err.message };
-          if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 30000;
+          if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 2000;
           resolveItem(r);
           return r;
         });

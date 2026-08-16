@@ -24,9 +24,6 @@ window.GameBalon = (() => {
     timers = [];
     const items = params.items;
     
-    // Siapkan audio huruf/suku kata di background
-    items.forEach(item => AudioSys.prewarmItem(item));
-    
     const show = (it) => {
       if (params.display === 'upper') return it.toUpperCase();
       if (params.display === 'lower') return it.toLowerCase();

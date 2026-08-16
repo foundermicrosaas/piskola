@@ -63,7 +63,7 @@ function loadDb() {
 function saveDb(db) {
   try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); } catch (e) { console.error('[DB] Gagal simpan database', e); }
 }
-const MAX_RATE = Number(ENV.MAX_RATE) || 60;
+const MAX_RATE = Number(ENV.MAX_RATE) || 600;
 const MAX_TEXT = 300;
 const EL_BASE = 'https://api.elevenlabs.io';
 

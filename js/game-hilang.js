@@ -21,11 +21,8 @@ window.GameHilang = (() => {
   function start(params) {
     active = true;
     timers = [];
-    const pool = params.pool.filter(w => w.word.length <= 7);
+    const pool = params.pool.filter(w => w.word.length >= 3 && w.word.length <= 7);
     
-    // Siapkan audio kata di background
-    pool.forEach(q => AudioSys.prewarmItem(q.word));
-
     let round = 0, correct = 0, attempts = 0, busy = false;
 
     const area = document.getElementById('game-area');
