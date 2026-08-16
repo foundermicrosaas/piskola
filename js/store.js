@@ -23,6 +23,8 @@ window.Store = (() => {
     if (p && p.isPro === undefined) p.isPro = false;
     if (p && !p.createdAt) p.createdAt = Date.now();
     if (p && !p.lastActiveAt) p.lastActiveAt = p.createdAt;
+    if (p && p.streakCount === undefined) p.streakCount = 0;
+    if (p && p.lastPlayedDate === undefined) p.lastPlayedDate = '';
     return p;
   }
 
@@ -251,6 +253,44 @@ window.Store = (() => {
   function getGameProgress(unitId, gameId, pid) {
     return (getProgress(pid)[unitId] || {})[gameId] || null;
   }
+  
+  function getTodayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function updateStreak(pid) {
+    const id = pid || (getProfile() || {}).id;
+    if (!id) return { count: 0, newStreak: false };
+    const p = data.profiles.find(x => x.id === id);
+    if (!p) return { count: 0, newStreak: false };
+
+    const todayStr = getTodayStr();
+    if (p.lastPlayedDate === todayStr) {
+      return { count: p.streakCount, newStreak: false };
+    }
+
+    let newStreak = false;
+    if (!p.lastPlayedDate) {
+      p.streakCount = 1;
+      newStreak = true;
+    } else {
+      const last = new Date(p.lastPlayedDate);
+      const today = new Date(todayStr);
+      const diffDays = Math.round(Math.abs(today - last) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        p.streakCount += 1;
+        newStreak = true;
+      } else {
+        p.streakCount = 1;
+        newStreak = true;
+      }
+    }
+    p.lastPlayedDate = todayStr;
+    saveAndSync(id);
+    return { count: p.streakCount, newStreak };
+  }
+
   function setGameProgress(unitId, gameId, res, pid) {
     const id = pid || (getProfile() || {}).id;
     if (!id) return null;
@@ -265,6 +305,39 @@ window.Store = (() => {
     saveAndSync(id);
     return data.progress[id][unitId][gameId];
   }
+  
+  function getReport(pid) {
+    const prog = getProgress(pid);
+    let stars = 0;
+    let totalAcc = 0;
+    let playsCount = 0;
+    const weakUnits = {};
+    const strongUnits = {};
+
+    Object.keys(prog).forEach(u => {
+      let unitAcc = 0;
+      let unitPlays = 0;
+      Object.keys(prog[u]).forEach(g => {
+        const gm = prog[u][g];
+        stars += gm.stars || 0;
+        if (gm.plays > 0) {
+          totalAcc += gm.best;
+          playsCount++;
+          unitAcc += gm.best;
+          unitPlays++;
+        }
+      });
+      if (unitPlays > 0) {
+        const avgUnit = unitAcc / unitPlays;
+        if (avgUnit < 75) weakUnits[u] = avgUnit;
+        else if (avgUnit >= 90) strongUnits[u] = avgUnit;
+      }
+    });
+
+    const avg = playsCount > 0 ? Math.round(totalAcc / playsCount) : 0;
+    return { stars, avg, weakUnits, strongUnits, plays: playsCount };
+  }
+
   function profileStars(pid) {
     const prog = getProgress(pid);
     let s = 0;
@@ -339,7 +412,7 @@ window.Store = (() => {
   return {
     CloudSync, AdminSync,
     getProfiles, getProfile, setActive, addProfile, updateProfile, deleteProfile, clearProgress, setPro, isPro,
-    getProgress, getGameProgress, setGameProgress, profileStars, profileStats, allStats,
+    getProgress, getGameProgress, setGameProgress, getReport, updateStreak, profileStars, profileStats, allStats,
     getSettings, setMuted, setElevenLabs, getElevenLabs, resetAll
   };
 })();

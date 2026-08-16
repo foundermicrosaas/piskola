@@ -420,21 +420,69 @@
 
     $$('.unit-card').forEach(card => card.addEventListener('click', () => openUnit(card.dataset.unit)));
 
-    // Banner ajakan PRO untuk akun gratis (mendorong konversi)
-    const banner = $('#pro-banner');
-    const isPro = !!(p.isPro);
-    banner.classList.toggle('hidden', isPro);
-    if (!isPro) {
-      banner.innerHTML =
-        '<div class="pro-banner">' +
-          '<div class="pro-banner-info">' +
-            '<span class="pro-banner-emoji">⭐</span>' +
-            '<div><b>Jadikan PRO</b><span>Buka semua game belajar — Baca & Hitung!</span></div>' +
-          '</div>' +
-          '<button class="btn btn-primary sm" id="btn-go-pro">Lihat ▶</button>' +
-        '</div>';
-      $('#btn-go-pro').addEventListener('click', () => { AudioSys.sfx.tap(); location.href = 'pro/index.html'; });
+    updateProBanner(p);
+  }
+
+  function updateProBanner(p) {
+    const b = $('#pro-banner');
+    if (!b) return;
+    if (p.isPro) {
+      b.className = 'pro-banner active';
+      b.innerHTML = '<div>⭐ Status <b>PRO</b> Aktif — Semua unit bebas dimainkan!</div>';
+    } else {
+      b.className = 'pro-banner';
+      b.innerHTML = '<div>Miliki <b>PRO</b> untuk membuka sisa game & unit eksklusif!</div>' +
+                    '<button class="btn btn-primary sm" id="btn-banner-pro">Lihat PRO</button>';
+      const bBtn = $('#btn-banner-pro');
+      if (bBtn) bBtn.addEventListener('click', () => Payment.showModal());
     }
+  }
+  
+  /* ==================== RAPOR PROGRES ==================== */
+  function openRapor() {
+    const p = profile();
+    if (!p) return;
+    const r = Store.getReport(p.id);
+    
+    $('#rapor-stars').textContent = r.stars;
+    $('#rapor-acc').textContent = r.avg + '%';
+    $('#rapor-streak').textContent = p.streakCount || 0;
+    $('#rapor-plays').textContent = r.plays;
+    
+    let advice = '';
+    const w = Object.keys(r.weakUnits);
+    const s = Object.keys(r.strongUnits);
+    
+    if (r.plays === 0) {
+      advice = 'Kakak belum main game nih. Yuk mulai main!';
+    } else if (w.length > 0) {
+      // Ambil unit yang lemah
+      advice = `Adek masih sering salah di beberapa bagian. Yuk sering-sering main game <b>Tebak Kata</b> untuk melatih akurasi!`;
+    } else if (s.length > 0) {
+      advice = `Wah, luar biasa! Adek sangat pintar dan akurat. Teruskan belajarnya ke Unit yang lebih tinggi!`;
+    } else {
+      advice = `Bagus! Terus semangat belajar dan kumpulkan lebih banyak bintang!`;
+    }
+    $('#rapor-advice').innerHTML = advice;
+    
+    $('#rapor-modal').classList.remove('hidden');
+    AudioSys.sfx.tap();
+  }
+  
+  function wireRapor() {
+    const btn = $('#btn-rapor');
+    if (btn) btn.addEventListener('click', openRapor);
+    const btnClose = $('#btn-close-rapor');
+    if (btnClose) btnClose.addEventListener('click', () => {
+      $('#rapor-modal').classList.remove('hidden');
+      $('#rapor-modal').classList.add('hidden');
+      AudioSys.sfx.tap();
+    });
+    $('#rapor-modal').addEventListener('click', (e) => {
+      if (e.target === $('#rapor-modal')) {
+        $('#rapor-modal').classList.add('hidden');
+      }
+    });
   }
 
   /* ==================== UNIT ==================== */
@@ -613,6 +661,28 @@
     const game = unit.games.find(x => x.id === gameId);
     const title = game ? game.title : 'Belajar';
     const overlay = $('#game-overlay');
+    
+    // 1. Cek Streak
+    const streakInfo = Store.updateStreak(p.id);
+    let streakHtml = '';
+    if (streakInfo.newStreak && streakInfo.count > 1) {
+      streakHtml = '<div style="color:var(--orange); font-weight:bold; margin-top:8px; animation: bounce 1s;">🔥 Streak ' + streakInfo.count + ' Hari! Hebat!</div>';
+    } else if (streakInfo.newStreak) {
+      streakHtml = '<div style="color:var(--sky); font-weight:bold; margin-top:8px;">🔥 Hari Pertama! Keren!</div>';
+    }
+
+    // 2. Cek Kelulusan Unit (Sertifikat)
+    let unitLulus = true;
+    unit.games.forEach(g => {
+      const pr = Store.getGameProgress(unit.id, g.id, p.id);
+      if (!pr || pr.stars === 0) unitLulus = false;
+    });
+    
+    let certBtn = '';
+    if (unitLulus) {
+      certBtn = '<button class="btn btn-primary" id="btn-result-cert" style="background:#F977CE; border-color:#d451a5; width:100%; margin-top:8px;">🏆 Bagikan Sertifikat Unit</button>';
+    }
+
     overlay.innerHTML =
       '<div class="result-card">' +
         '<div class="result-emoji">🎉</div>' +
@@ -620,11 +690,13 @@
         '<p class="result-sub">Menyelesaikan belajar ' + title + '</p>' +
         '<div class="star-row big">' + starRow(res.stars) + '</div>' +
         '<p class="result-acc">Akurasi: ' + res.accuracy + '%</p>' +
-        '<div class="result-actions">' +
+        streakHtml +
+        '<div class="result-actions" style="margin-top:16px;">' +
           '<button class="btn btn-secondary" id="btn-result-replay">🔁 Main Lagi</button>' +
-          '<button class="btn btn-share" id="btn-result-share">📤 Bagikan</button>' +
+          '<button class="btn btn-share" id="btn-result-share">📤 Bagikan Game</button>' +
           '<button class="btn btn-primary" id="btn-result-back">Kembali</button>' +
         '</div>' +
+        certBtn +
         '<div class="share-panel hidden" id="share-panel"></div>' +
       '</div>';
     overlay.classList.remove('hidden');
@@ -643,6 +715,35 @@
       AudioSys.sfx.tap();
       openSharePanel(p, title, res);
     });
+    
+    const btnCert = $('#btn-result-cert');
+    if (btnCert) {
+      btnCert.addEventListener('click', () => {
+        AudioSys.sfx.tap();
+        shareCertificate(p, unit);
+      });
+    }
+  }
+
+  /* ==================== SERTIFIKAT KELULUSAN UNIT ==================== */
+  async function shareCertificate(p, unit) {
+    const text = 'Alhamdulillah! ' + p.nama + ' sudah lulus ' + unit.title + '! 🎉 Terima kasih Piskola! Yuk main & belajar bareng!';
+    
+    // Gunakan Web Share API (tanpa gambar, karena kita belum membuat generator canvas untuk sertifikat, cukup text + emoji)
+    // Atau jika mau gambar, panggil drawShareCard dengan modifikasi. Untuk sekarang, kita share text saja
+    const nav = navigator;
+    try {
+      if (nav.share) {
+        await nav.share({ title: 'Sertifikat Piskola — ' + p.nama, text });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+    
+    // Fallback copy
+    try { await navigator.clipboard.writeText(text); } catch (e2) { }
+    alert('Teks sertifikat berhasil disalin!\n\nSilakan paste (tempel) di status WhatsApp atau sosial media Anda.');
   }
 
   /* ==================== BAGIKAN HASIL BELAJAR ====================
@@ -851,6 +952,51 @@
       AudioSys.prewarm(AudioSys.greetText(profile())); // sapaan baru ikut disiapkan (sesuai tutor & muslim)
     });
 
+    $('#btn-download-audio').addEventListener('click', async () => {
+      const btn = $('#btn-download-audio');
+      const status = $('#download-status');
+      if (btn.disabled) return;
+      
+      AudioSys.sfx.tap();
+      btn.disabled = true;
+      btn.textContent = '⏳ Mengunduh... (0%)';
+      status.style.display = 'block';
+      status.textContent = 'Pastikan internet stabil...';
+
+      try {
+        let total = WORDS_FLAT.length;
+        let done = 0;
+        // Pre-fetch all words via AudioSys.prewarm (yang memanggil fetch ke server lalu simpan ke IndexedDB)
+        for (let i = 0; i < total; i++) {
+          const w = WORDS_FLAT[i];
+          await AudioSys.prewarm(w.word);
+          done++;
+          if (done % 5 === 0 || done === total) {
+            btn.textContent = `⏳ Mengunduh... (${Math.round(done/total * 100)}%)`;
+            status.textContent = `${done} / ${total} kata tersimpan`;
+          }
+        }
+        
+        // Coba prewarm pujian dan sambutan
+        const basics = ['Wah', 'Keren', 'Hebat', 'Luar biasa', 'Sempurna'];
+        for (let b of basics) await AudioSys.prewarm(b);
+
+        btn.textContent = '✅ Suara Siap Offline';
+        status.textContent = 'Anda bisa mematikan internet sekarang.';
+        status.style.color = 'var(--green)';
+      } catch (err) {
+        btn.textContent = '❌ Gagal Mengunduh';
+        status.textContent = 'Koneksi terputus. Coba lagi nanti.';
+        status.style.color = 'var(--orange)';
+      }
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '☁️ Unduh Suara (Mode Offline)';
+        status.style.display = 'none';
+        status.style.color = 'var(--sky)';
+      }, 5000);
+    });
+
     /* Hapus HANYA progres pencapaian anak ini — akun & data lain tetap aman */
     $('#btn-clear-progress').addEventListener('click', () => {
       const p = profile();
@@ -979,7 +1125,7 @@
     });
 
     $('#btn-install-go').addEventListener('click', async () => {
-      if (!deferredPrompt) { $('#install-modal').classList.add('hidden'); return; }
+      if (!deferredPrompt) { $('#install-modal').classList.remove('hidden'); return; }
       deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice.catch(() => ({}));
       deferredPrompt = null;
@@ -1028,9 +1174,12 @@
     AudioSys.setMuted(Store.getSettings().muted === true);
     updateMuteIcon();
     wireLogin();
-    wireSettings();
     wireNav();
     wireInstall();
+    wireSettings();
+    wireRapor();
+    
+    const sid = Store.getSettings().activeId;
 
     // Ambil config voice dari server secara diam-diam (tidak blokir UI)
     fetchServerConfig();

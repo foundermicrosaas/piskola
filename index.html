@@ -112,6 +112,7 @@
       </div>
       <div class="topbar-actions">
         <button class="icon-btn" id="btn-sound" aria-label="Suara">🔊</button>
+        <button class="icon-btn" id="btn-rapor" aria-label="Rapor" style="font-size:1.3rem;">📊</button>
         <button class="icon-btn" id="btn-settings" aria-label="Pengaturan">⚙️</button>
       </div>
     </header>
@@ -186,6 +187,8 @@
       </label>
       <div class="modal-actions-col">
         <button class="btn btn-primary" id="btn-upgrade-pro" style="display: none; animation: pulse 2s infinite;">🌟 Aktifkan Pro (G Pay)</button>
+        <button class="btn btn-secondary sm" id="btn-download-audio">☁️ Unduh Suara (Mode Offline)</button>
+        <p id="download-status" style="font-size:0.8rem; margin:0; text-align:center; color:var(--sky); display:none;"></p>
         <button class="btn btn-secondary sm" id="btn-save-settings">Simpan</button>
         <button class="btn btn-secondary sm" id="btn-clear-progress">🧹 Hapus progres anak ini</button>
         <button class="btn btn-secondary sm danger" id="btn-delete-profile">🗑️ Hapus akun anak ini</button>
@@ -213,6 +216,40 @@
         <button class="btn btn-primary sm" id="btn-install-go">📲 Pasang Sekarang</button>
       </div>
       <button class="modal-close" id="btn-install-close">Tutup ✕</button>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Rapor Progres ===== -->
+  <div class="modal hidden" id="rapor-modal">
+    <div class="modal-card">
+      <h3>📊 Rapor Progres</h3>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom: 16px;">
+        <div style="background:#f4ebff; border-radius:16px; padding:12px;">
+          <div style="font-size:2rem;">⭐</div>
+          <div style="font-weight:800; font-size:1.4rem; color:var(--sky);" id="rapor-stars">0</div>
+          <div style="font-size:0.8rem; color:#7a6b8a; font-weight:700;">Total Bintang</div>
+        </div>
+        <div style="background:#e6f8ee; border-radius:16px; padding:12px;">
+          <div style="font-size:2rem;">🎯</div>
+          <div style="font-weight:800; font-size:1.4rem; color:var(--green);" id="rapor-acc">0%</div>
+          <div style="font-size:0.8rem; color:#7a6b8a; font-weight:700;">Akurasi</div>
+        </div>
+        <div style="background:#fff3d4; border-radius:16px; padding:12px;">
+          <div style="font-size:2rem;">🔥</div>
+          <div style="font-weight:800; font-size:1.4rem; color:var(--orange);" id="rapor-streak">0</div>
+          <div style="font-size:0.8rem; color:#7a6b8a; font-weight:700;">Hari Streak</div>
+        </div>
+        <div style="background:#ffe6e6; border-radius:16px; padding:12px;">
+          <div style="font-size:2rem;">🎮</div>
+          <div style="font-weight:800; font-size:1.4rem; color:#d64a4a;" id="rapor-plays">0</div>
+          <div style="font-size:0.8rem; color:#7a6b8a; font-weight:700;">Game Selesai</div>
+        </div>
+      </div>
+      <div style="text-align:left; background:#fcfcfc; border:2px solid #eee; border-radius:16px; padding:12px;">
+        <h4 style="margin:0 0 8px; color:#5b4a6e;">Saran Belajar:</h4>
+        <p id="rapor-advice" style="margin:0; font-size:0.9rem; color:#7a6b8a; font-weight:600; line-height:1.4;">Belum ada saran. Yuk main lebih banyak game!</p>
+      </div>
+      <button class="modal-close" id="btn-close-rapor">Tutup ✕</button>
     </div>
   </div>
 
