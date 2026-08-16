@@ -65,7 +65,7 @@ window.PaymentSys = (() => {
     paymentsClient.isReadyToPay(getGoogleIsReadyToPayRequest())
       .then(function(response) {
         if (response.result) {
-          addGooglePayButton();
+          setupCustomPayButton();
         }
       })
       .catch(function(err) {
@@ -73,20 +73,13 @@ window.PaymentSys = (() => {
       });
   }
 
-  function addGooglePayButton() {
-    const paymentsClient = getGooglePaymentsClient();
-    const button = paymentsClient.createButton({
-      onClick: onGooglePaymentButtonClicked,
-      allowedPaymentMethods: [baseCardPaymentMethod]
-    });
-    const container = document.getElementById('google-pay-button-container');
-    if (container) {
-      container.innerHTML = '<p class="settings-note" style="margin-bottom: 6px;">Tingkatkan ke Pro untuk fitur penuh!</p>';
-      container.appendChild(button);
+  function setupCustomPayButton() {
+    const btn = document.getElementById('btn-upgrade-pro');
+    if (btn) {
+      btn.addEventListener('click', onGooglePaymentButtonClicked);
       // Hanya tampilkan jika user belum Pro
       if (!Store.isPro()) {
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
+        btn.style.display = 'block';
       }
     }
   }
@@ -118,8 +111,8 @@ window.PaymentSys = (() => {
     // Simulasi: pembayaran berhasil di frontend
     Store.setPro(true);
     alert('Terima kasih! Pembayaran berhasil. Akun Anda sekarang menjadi Piskola Pro! 🎉');
-    const container = document.getElementById('google-pay-button-container');
-    if (container) container.style.display = 'none';
+    const btn = document.getElementById('btn-upgrade-pro');
+    if (btn) btn.style.display = 'none';
   }
 
   return { onGooglePayLoaded };
