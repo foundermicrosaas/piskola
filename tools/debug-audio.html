@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔍 Debug Audio — Piskola</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; margin: 0; padding: 16px; color: #333; }
+    h2 { color: #FF8A3D; margin: 0 0 12px; }
+    .card { background: #fff; border-radius: 16px; padding: 16px; margin: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .ok   { color: #2a9d2a; font-weight: bold; }
+    .err  { color: #cc2222; font-weight: bold; }
+    .warn { color: #cc7700; font-weight: bold; }
+    pre { background: #f0f0f0; border-radius: 8px; padding: 10px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+    button { background: #FF8A3D; color: #fff; border: none; border-radius: 10px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; margin: 6px 4px; }
+    button.sec { background: #2EC4B6; }
+    button.danger { background: #cc2222; }
+    #log { font-size: 13px; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+    label { font-weight: bold; min-width: 140px; }
+    input[type=text], input[type=password] { flex: 1; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+<h2>🔍 Debug Audio Piskola</h2>
+<p style="font-size:13px;color:#666">Halaman ini menampilkan kondisi konfigurasi ElevenLabs dan membantu mendiagnosis masalah suara.</p>
+
+<div class="card">
+  <h3>📦 Konfigurasi tersimpan (localStorage)</h3>
+  <pre id="out-config">Memuat...</pre>
+</div>
+
+<div class="card">
+  <h3>👤 Profil aktif</h3>
+  <pre id="out-profile">Memuat...</pre>
+</div>
+
+<div class="card">
+  <h3>✅ Diagnosis</h3>
+  <div id="out-diag">Memuat...</div>
+</div>
+
+<div class="card">
+  <h3>🔊 Uji Suara Langsung</h3>
+  <p style="font-size:13px">Uji ElevenLabs langsung tanpa perlu masuk ke halaman utama:</p>
+  <div class="row"><label>API Key:</label><input type="password" id="t-apikey" placeholder="xi-api-..."></div>
+  <div class="row"><label>Voice ID:</label><input type="text" id="t-voice" placeholder="voice id..."></div>
+  <div class="row"><label>Teks uji:</label><input type="text" id="t-text" value="Halo! Ayo belajar membaca!"></div>
+  <button onclick="testDirect()">🔊 Uji Langsung ke ElevenLabs</button>
+  <button class="sec" onclick="testFromStore()">🔊 Uji Pakai Config Tersimpan</button>
+  <p id="test-status" style="font-size:13px;margin-top:8px"></p>
+</div>
+
+<div class="card">
+  <h3>🛠️ Tindakan</h3>
+  <button class="sec" onclick="clearFailedUntil()">⏱️ Reset Cooldown Kegagalan</button>
+  <button class="sec" onclick="forceReload()">🔄 Force Reload (hapus SW cache)</button>
+  <button class="danger" onclick="clearAllCache()">🗑️ Hapus Semua IndexedDB Audio</button>
+  <p id="action-status" style="font-size:13px;margin-top:8px"></p>
+</div>
+
+<div class="card">
+  <h3>📋 Log Aktivitas</h3>
+  <pre id="log">—</pre>
+</div>
+
+<script src="../js/store.js"></script>
+<script>
+  function log(msg) {
+    const el = document.getElementById('log');
+    const t = new Date().toLocaleTimeString();
+    el.textContent = '[' + t + '] ' + msg + '\n' + el.textContent;
+  }
+
+  function render() {
+    // Config
+    const el = Store.getElevenLabs();
+    document.getElementById('out-config').textContent = JSON.stringify({
+      apiKey: el.apiKey ? el.apiKey.slice(0, 8) + '...' : '(kosong)',
+      femaleVoiceId: el.femaleVoiceId || '(kosong)',
+      maleVoiceId: el.maleVoiceId || '(kosong)',
+      voiceId: el.voiceId || '(kosong)',
+      speed: el.speed || 0.75,
+      serverTts: !!el.serverTts,
+      serverUrl: el.serverUrl || '(kosong)',
+      serverToken: el.serverToken ? '(diisi)' : '(kosong)'
+    }, null, 2);
+
+    // Profil
+    const p = Store.getProfile();
+    document.getElementById('out-profile').textContent = p
+      ? JSON.stringify({ nama: p.nama, tutorGender: p.tutorGender || 'female', muslim: p.muslim, panggilan: p.panggilan }, null, 2)
+      : '(belum login / tidak ada profil aktif)';
+
+    // Diagnosis
+    const diag = [];
+    const hasDirect = !!(el.apiKey && (el.voiceId || el.femaleVoiceId || el.maleVoiceId));
+    const hasServer = !!(el.serverTts && el.serverUrl && (el.femaleVoiceId || el.maleVoiceId || el.voiceId));
+
+    if (!el.apiKey && !el.serverTts) {
+      diag.push('<p class="err">❌ API Key kosong DAN Mode Server tidak aktif → suara browser akan dipakai</p>');
+    } else if (el.apiKey) {
+      diag.push('<p class="ok">✅ API Key terisi → Mode LANGSUNG aktif</p>');
+    }
+
+    if (!el.femaleVoiceId && !el.maleVoiceId && !el.voiceId) {
+      diag.push('<p class="err">❌ Semua Voice ID kosong → ElevenLabs tidak bisa dipakai</p>');
+    } else {
+      if (el.femaleVoiceId) diag.push('<p class="ok">✅ Female Voice ID: ' + el.femaleVoiceId + '</p>');
+      else diag.push('<p class="warn">⚠️ Female Voice ID kosong (akan pakai male atau voiceId lama)</p>');
+      if (el.maleVoiceId) diag.push('<p class="ok">✅ Male Voice ID: ' + el.maleVoiceId + '</p>');
+      else diag.push('<p class="warn">⚠️ Male Voice ID kosong (akan pakai female)</p>');
+    }
+
+    if (el.serverTts) {
+      if (el.serverUrl) diag.push('<p class="ok">✅ Mode SERVER aktif — URL: ' + el.serverUrl + '</p>');
+      else diag.push('<p class="err">❌ Mode Server dicentang tapi URL kosong!</p>');
+    } else {
+      diag.push('<p>ℹ️ Mode Server TIDAK aktif (centang tidak diperlukan jika API Key sudah diisi)</p>');
+    }
+
+    if (!p) {
+      diag.push('<p class="err">❌ Tidak ada profil aktif → suara tidak akan dipanggil di layar utama</p>');
+    } else {
+      const gender = p.tutorGender || 'female';
+      const voiceUsed = gender === 'male'
+        ? (el.maleVoiceId || el.femaleVoiceId || el.voiceId)
+        : (el.femaleVoiceId || el.maleVoiceId || el.voiceId);
+      if (voiceUsed) diag.push('<p class="ok">✅ Profil "' + p.nama + '" → tutor ' + gender + ' → Voice ID: ' + voiceUsed + '</p>');
+      else diag.push('<p class="err">❌ Profil "' + p.nama + '" → tutor ' + gender + ' → TIDAK ADA voice ID yang cocok</p>');
+    }
+
+    // prefill test form
+    document.getElementById('t-apikey').value = el.apiKey || '';
+    const gender2 = p ? (p.tutorGender || 'female') : 'female';
+    document.getElementById('t-voice').value = gender2 === 'male'
+      ? (el.maleVoiceId || el.femaleVoiceId || el.voiceId || '')
+      : (el.femaleVoiceId || el.maleVoiceId || el.voiceId || '');
+
+    document.getElementById('out-diag').innerHTML = diag.join('');
+  }
+
+  async function testDirect() {
+    const apiKey = document.getElementById('t-apikey').value.trim();
+    const voiceId = document.getElementById('t-voice').value.trim();
+    const text = document.getElementById('t-text').value.trim() || 'Halo!';
+    const st = document.getElementById('test-status');
+    if (!apiKey) { st.textContent = '❌ API Key kosong'; return; }
+    if (!voiceId) { st.textContent = '❌ Voice ID kosong'; return; }
+    st.textContent = '⏳ Menghubungi ElevenLabs...';
+    log('Uji langsung: voice=' + voiceId + ' text=' + text.slice(0, 30));
+    try {
+      const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + encodeURIComponent(voiceId), {
+        method: 'POST',
+        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.85, style: 0.55, use_speaker_boost: true } })
+      });
+      if (!res.ok) {
+        const d = await res.text().catch(() => '');
+        st.textContent = '❌ ElevenLabs ' + res.status + ': ' + d.slice(0, 200);
+        log('Gagal: ' + res.status + ' ' + d.slice(0, 100));
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      new Audio(url).play();
+      st.textContent = '✅ Berhasil! Dengarkan suaranya. (blob size: ' + blob.size + ' bytes)';
+      log('Berhasil! blob=' + blob.size + 'B');
+    } catch (e) {
+      st.textContent = '❌ Error: ' + e.message;
+      log('Error: ' + e.message);
+    }
+  }
+
+  async function testFromStore() {
+    const el = Store.getElevenLabs();
+    const p = Store.getProfile();
+    const gender = p ? (p.tutorGender || 'female') : 'female';
+    const voiceId = gender === 'male'
+      ? (el.maleVoiceId || el.femaleVoiceId || el.voiceId)
+      : (el.femaleVoiceId || el.maleVoiceId || el.voiceId);
+    document.getElementById('t-apikey').value = el.apiKey || '';
+    document.getElementById('t-voice').value = voiceId || '';
+    await testDirect();
+  }
+
+  function clearFailedUntil() {
+    // elFailedUntil ada di AudioSys — tidak bisa direset dari sini.
+    // Tapi kita bisa paksa reload audio.js lewat forceReload.
+    document.getElementById('action-status').textContent = '⚠️ Cooldown ada di memori tab utama. Lakukan Force Reload untuk reset.';
+  }
+
+  function forceReload() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+        document.getElementById('action-status').textContent = '✅ Service worker di-unregister. Reload...';
+        setTimeout(() => location.reload(true), 800);
+      });
+    } else {
+      location.reload(true);
+    }
+  }
+
+  async function clearAllCache() {
+    try {
+      const db = await new Promise((res, rej) => {
+        const rq = indexedDB.open('piskola-audio', 1);
+        rq.onsuccess = () => res(rq.result);
+        rq.onerror = () => rej(rq.error);
+      });
+      await new Promise((res, rej) => {
+        const tx = db.transaction('blobs', 'readwrite');
+        tx.objectStore('blobs').clear();
+        tx.oncomplete = res;
+        tx.onerror = rej;
+      });
+      document.getElementById('action-status').textContent = '✅ Cache IndexedDB audio berhasil dihapus.';
+      log('IndexedDB audio cache dihapus');
+    } catch (e) {
+      document.getElementById('action-status').textContent = '❌ Gagal hapus cache: ' + e.message;
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
