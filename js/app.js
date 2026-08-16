@@ -693,27 +693,25 @@
     panel.innerHTML =
       '<p class="share-title">Bagikan hasil belajarnya! 📤</p>' +
       '<img class="share-preview" id="share-preview" alt="Kartu hasil belajar">' +
-      '<div class="share-options">' +
-        '<button class="share-opt" data-target="wa"><span>💬</span>WhatsApp</button>' +
-        '<button class="share-opt" data-target="wastatus"><span>🟢</span>WA Status</button>' +
-        '<button class="share-opt" data-target="fbstory"><span>📘</span>FB Story</button>' +
-        '<button class="share-opt" data-target="fbpost"><span>📝</span>FB Post</button>' +
+      '<div class="share-options" style="display: block;">' +
+        '<button class="btn btn-share" style="width: 100%;" id="btn-share-native">🚀 Bagikan Sekarang</button>' +
       '</div>' +
-      '<p class="share-note">Pilih aplikasinya di menu berbagi yang muncul, ya!</p>';
+      '<p class="share-note">Bagikan ke WhatsApp, Facebook, atau aplikasi lainnya!</p>';
 
     buildShareCard(p, title, res).then(url => {
       const img = $('#share-preview');
       if (img) img.src = url;
     }).catch(() => { /* preview gagal — tombol tetap bisa dipakai */ });
 
-    panel.querySelectorAll('.share-opt').forEach(b =>
-      b.addEventListener('click', () => doShare(b.dataset.target, p, title, res))
-    );
+    $('#btn-share-native').addEventListener('click', () => doShare(p, title, res));
   }
 
-  async function doShare(target, p, title, res) {
+  async function doShare(p, title, res) {
     if (!shareCardCache) await buildShareCard(p, title, res);
-    const text = SHARE_TEXT[target](p, title, res);
+    
+    // Gunakan teks default yang umum
+    const text = 'Yeay! ' + p.nama + ' mendapat bintang ' + res.stars + ' di game ' + title + ' dengan akurasi ' + res.accuracy + '%! 🥳 Bikin bangga deh! Yuk main Piskola bareng!';
+    
     const file = new File([shareCardCache.blob], 'hasil-belajar-' + p.nama + '.png', { type: 'image/png' });
     const nav = navigator;
     try {
@@ -859,9 +857,12 @@
     /* Tab Belajar Baca / Belajar Hitung */
     $$('.home-tabs .tab').forEach(t => {
       t.addEventListener('click', () => {
+        if (homeTab === t.dataset.tab) return; // hindari sapaan dobel jika tab sama diklik
         homeTab = t.dataset.tab;
         $$('.home-tabs .tab').forEach(x => x.classList.toggle('active', x === t));
         AudioSys.sfx.tap();
+        AudioSys.setSubject(homeTab);
+        AudioSys.greet(profile());
         renderHome();
       });
     });

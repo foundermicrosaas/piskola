@@ -201,9 +201,19 @@ window.Store = (() => {
     data = fresh();
   }
 
+  /* ---- Pembayaran (Google Pay) ---- */
+  function setPro(value) {
+    const p = getProfile();
+    if (p) { p.isPro = !!value; save(); }
+  }
+  function isPro() {
+    const p = getProfile();
+    return p ? !!p.isPro : false;
+  }
+
   load();
   return {
-    getProfiles, getProfile, setActive, addProfile, updateProfile, deleteProfile, clearProgress, setPro,
+    getProfiles, getProfile, setActive, addProfile, updateProfile, deleteProfile, clearProgress, setPro, isPro,
     getProgress, getGameProgress, setGameProgress, profileStars, profileStats, allStats,
     getSettings, setMuted, setElevenLabs, getElevenLabs, resetAll
   };
