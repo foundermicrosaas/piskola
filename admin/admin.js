@@ -233,8 +233,8 @@
         '<button class="btn btn-primary sm" id="btn-add-user">➕ Daftarkan anak</button>' +
       '</div>' +
       '<div id="add-user-form" class="user-form hidden">' +
-        '<input id="au-name" placeholder="Nama anak" maxlength="12">' +
-        '<input id="au-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN 4 angka (untuk login)" autocomplete="new-password">' +
+        '<input id="au-name" class="form-input" placeholder="Nama anak" maxlength="12">' +
+        '<input id="au-pin" class="form-input" type="password" inputmode="numeric" maxlength="4" placeholder="PIN 4 angka (untuk login)" autocomplete="new-password">' +
         '<div class="panggilan-row small">' +
           '<button class="panggilan-btn sm" data-au-pg="kakak">👧 Kakak</button>' +
           '<button class="panggilan-btn sm" data-au-pg="adek">🧒 Adek</button>' +

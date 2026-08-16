@@ -84,7 +84,7 @@ window.Store = (() => {
   const CloudSync = {
     async register(userData) {
       try {
-        const res = await fetch('/api/register', {
+        const res = await fetch('/tts?api=/register', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(userData)
@@ -101,7 +101,7 @@ window.Store = (() => {
     },
     async login(username, pin) {
       try {
-        const res = await fetch('/api/login', {
+        const res = await fetch('/tts?api=/login', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({username, pin})
@@ -120,7 +120,7 @@ window.Store = (() => {
        daftar): kembalikan { available: true/false }. Gagal jaringan → lempar
        error agar UI bisa bersikap netral (tidak memblokir pendaftaran). */
     async checkUsername(username) {
-      const res = await fetch('/api/check-username?username=' + encodeURIComponent(username.trim().toLowerCase()), {
+      const res = await fetch('/tts?api=/check-username&username=' + encodeURIComponent(username.trim().toLowerCase()), {
         headers: { 'x-tts-token': getStoredAdminToken() }
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -128,7 +128,7 @@ window.Store = (() => {
     },
     async syncProgress(uid, userObj) {
       try {
-        await fetch('/api/sync?uid=' + uid, {
+        await fetch('/tts?api=/sync&uid=' + uid, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(userObj)
@@ -140,7 +140,7 @@ window.Store = (() => {
   const AdminSync = {
     async fetchAllUsers() {
       try {
-        const res = await fetch('/api/admin/users', { headers: { 'x-tts-token': getStoredAdminToken() } });
+        const res = await fetch('/tts?api=/admin/users', { headers: { 'x-tts-token': getStoredAdminToken() } });
         if (!res.ok) throw new Error('Gagal memuat pengguna');
         const users = await res.json();
         data.profiles = users; // Timpa sementara data lokal dengan seluruh data server
@@ -148,7 +148,7 @@ window.Store = (() => {
       } catch(e) { throw e; }
     },
     async deleteUser(uid) {
-      await fetch('/api/admin/users/delete?uid=' + uid, { method: 'POST', headers: { 'x-tts-token': getStoredAdminToken() } });
+      await fetch('/tts?api=/admin/users/delete&uid=' + uid, { method: 'POST', headers: { 'x-tts-token': getStoredAdminToken() } });
     }
   };
   function getStoredAdminToken() {

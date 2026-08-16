@@ -186,7 +186,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   const u = new URL(req.url, 'http://x');
-  const p = u.pathname;
+  let p = u.pathname;
+  if ((p === '/tts' || p === '/config') && u.searchParams.has('api')) {
+    p = '/api' + u.searchParams.get('api');
+  }
 
   /* ---------- API DATABASE LOKAL ---------- */
   function parseBody(req) {

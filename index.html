@@ -42,11 +42,11 @@
       <p class="login-hint">Masukkan Username dan PIN kamu.</p>
       
       <div class="reg-block" style="margin-top: 16px;">
-        <input id="login-username" type="text" placeholder="Username (misal: ubay123)" autocomplete="off" spellcheck="false" style="width: 100%; padding: 12px 18px; border: 2.5px solid #f0dcc0; border-radius: 16px; font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; background: #fff9f0; outline: none; box-sizing: border-box; text-align:center; margin-bottom: 12px;">
+        <input id="login-username" class="form-input" type="text" placeholder="Username (misal: ubay123)" autocomplete="off" spellcheck="false" style="width: 100%; padding: 12px 18px; border: 2.5px solid #f0dcc0; border-radius: 16px; font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; background: #fff9f0; outline: none; box-sizing: border-box; text-align:center; margin-bottom: 12px;">
       </div>
       
       <div class="reg-block">
-        <input id="login-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN 4 Angka (• • • •)" autocomplete="off" style="width: 100%; padding: 12px 18px; border: 2.5px solid #f0dcc0; border-radius: 16px; font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; background: #fff9f0; outline: none; box-sizing: border-box; text-align:center; margin-bottom: 12px;">
+        <input id="login-pin" class="form-input" type="password" inputmode="numeric" maxlength="4" placeholder="PIN 4 Angka (• • • •)" autocomplete="off" style="width: 100%; padding: 12px 18px; border: 2.5px solid #f0dcc0; border-radius: 16px; font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; background: #fff9f0; outline: none; box-sizing: border-box; text-align:center; margin-bottom: 12px;">
       </div>
 
       <button class="btn btn-primary" id="btn-login-go" style="width: 100%;">Masuk ➡️</button>
@@ -63,9 +63,9 @@
     <div class="step active">
       <div class="step-emoji">🐣</div>
       <h2>Daftar Akun Baru</h2>
-      <input id="reg-username" type="text" maxlength="20" placeholder="Username (misal: ubay123)" autocomplete="off" spellcheck="false">
+      <input id="reg-username" class="form-input" type="text" maxlength="20" placeholder="Username (misal: ubay123)" autocomplete="off" spellcheck="false">
       <p id="reg-username-status" class="username-status"></p>
-      <input id="reg-name" type="text" maxlength="12" placeholder="Nama Panggilan Anak" autocomplete="off" spellcheck="false">
+      <input id="reg-name" class="form-input" type="text" maxlength="12" placeholder="Nama Panggilan Anak" autocomplete="off" spellcheck="false">
       <div class="reg-block">
         <p class="reg-label">Panggilan</p>
         <div class="panggilan-row">
@@ -90,8 +90,8 @@
       <div class="reg-block">
         <p class="reg-label">Buat PIN 4 angka</p>
         <div class="pin-pair">
-          <input id="reg-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="new-password">
-          <input id="reg-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="Ulangi PIN" autocomplete="new-password">
+          <input id="reg-pin" class="form-input" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="new-password">
+          <input id="reg-pin2" class="form-input" type="password" inputmode="numeric" maxlength="4" placeholder="Ulangi PIN" autocomplete="new-password">
         </div>
       </div>
       <p id="reg-error" class="login-error"></p>
