@@ -25,6 +25,11 @@ window.GameMemory = (() => {
         return { a: sy, b: emoji, bEmoji: true };
       });
     }
+    if (params.mode === 'kata') {
+      return params.pool.slice(0, 8).map(w => {
+        return { a: w.word, b: w.emoji, bEmoji: true };
+      });
+    }
     const upper = params.letterCase === 'upper';
     return params.letters.slice(0, 8).map(ch => ({
       a: upper ? ch : ch.toUpperCase(),

@@ -87,7 +87,9 @@ window.GameKuis = (() => {
       }
 
       busy = true;
-      later(() => AudioSys.speakItem(target.word), 400);
+      const playPrompt = () => AudioSys.speakItem(target.word, { flush: true });
+      window.lastGamePrompt = playPrompt;
+      later(playPrompt, 400);
       later(() => { busy = false; }, 1000);
 
       area.querySelectorAll('.choice-btn').forEach(btn => {

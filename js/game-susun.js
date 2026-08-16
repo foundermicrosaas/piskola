@@ -59,6 +59,10 @@ window.GameSusun = (() => {
             '<button class="build-tile trace-font" data-i="' + t.i + '" data-p="' + t.p + '">' + t.p + '</button>'
           ).join('') +
         '</div>';
+        
+      const playPrompt = () => AudioSys.speakItem(w.word, { flush: true });
+      window.lastGamePrompt = playPrompt;
+      later(playPrompt, 350);
 
       const slots = area.querySelectorAll('.build-slot');
       const btns = area.querySelectorAll('.build-tile');

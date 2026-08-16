@@ -42,16 +42,26 @@
     { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
     { id: 'susun', type: 'susun', title: 'Susun Huruf Kata', emoji: '🧩', desc: 'Susun huruf-hurufnya jadi kata yang benar.' },
+    { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' },
+    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' },
     { id: 'hilang', type: 'hilang', title: 'Huruf Hilang dari Kata', emoji: '🕵️', desc: 'Huruf mana yang hilang dari kata ini?' },
-    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' }
+    { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
+    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
+    { id: 'kuis-mix', type: 'kuis', mode: 'sound2word', title: 'Kuis Sulit: Dengar Kata', emoji: '🏆', desc: 'Pilih tulisan kata yang benar dari pilihan yang mirip.' },
+    { id: 'susun-cepat', type: 'susun', title: 'Susun Cepat', emoji: '⚡', desc: 'Susun huruf-hurufnya dengan cepat.' }
   ];
 
   const SUKU_GAMES = [
     { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
     { id: 'susun', type: 'susun', title: 'Susun Suku Kata', emoji: '🧩', desc: 'Susun suku kata jadi kata yang benar.' },
+    { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' },
+    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' },
     { id: 'hilang', type: 'hilang', title: 'Suku Kata Hilang', emoji: '🕵️', desc: 'Suku kata mana yang hilang dari kata ini?' },
-    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' }
+    { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
+    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
+    { id: 'kuis-mix', type: 'kuis', mode: 'sound2word', title: 'Kuis Sulit: Dengar Kata', emoji: '🏆', desc: 'Pilih tulisan kata yang benar dari pilihan yang mirip.' },
+    { id: 'susun-cepat', type: 'susun', title: 'Susun Cepat', emoji: '⚡', desc: 'Susun suku kata dengan cepat.' }
   ];
 
   const SYL_GROUPS = [
@@ -506,25 +516,36 @@
         break;
       case 'pasangan':
         GamePasangan.start({
-          mode: unit.kind === 'suku' ? 'suku' : 'case',
+          mode: game.mode || (unit.kind === 'suku' ? 'suku' : 'case'),
           letterCase: unit.letterCase, letters: unit.letters,
-          syllables: unit.syllables, words: WORDS, ...common
+          syllables: unit.syllables, words: WORDS,
+          pool: unit.kind === 'suku' 
+            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
+          ...common
         });
         break;
       case 'memory':
         GameMemory.start({
-          mode: unit.kind === 'suku' ? 'suku' : 'case',
+          mode: game.mode || (unit.kind === 'suku' ? 'suku' : 'case'),
           letterCase: unit.letterCase, letters: unit.letters,
-          syllables: unit.syllables, words: WORDS, ...common
+          syllables: unit.syllables, words: WORDS,
+          pool: unit.kind === 'suku' 
+            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
+          ...common
         });
         break;
       case 'urutan':
         GameUrutan.start({ letters: unit.letters, letterCase: unit.letterCase, ...common });
         break;
       case 'balon':
+        const pool = unit.kind === 'suku' 
+          ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+          : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase()));
         GameBalon.start({
-          items: unit.kind === 'huruf' ? unit.letters : unit.syllables,
-          display: unit.kind === 'huruf' ? unit.letterCase : 'raw',
+          items: game.mode === 'kata' ? pool.map(w => w.word) : (unit.kind === 'huruf' ? unit.letters : unit.syllables),
+          display: game.mode === 'kata' ? 'raw' : (unit.kind === 'huruf' ? unit.letterCase : 'raw'),
           ...common
         });
         break;

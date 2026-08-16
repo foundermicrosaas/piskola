@@ -670,6 +670,6 @@ window.AudioSys = (() => {
     prewarm, prewarmItem, angkaKeKata,
     setSubject,
     praiseCorrect, praiseStreak, praiseGame, praiseUnit, encourage, greet, greetText, gameWelcome,
-    sfx
+    sfx, stopAudio
   };
 })();

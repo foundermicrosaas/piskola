@@ -25,6 +25,11 @@ window.GamePasangan = (() => {
         return { key: sy, keyLabel: sy, target: word, targetLabel: emoji, emoji: true };
       });
     }
+    if (params.mode === 'kata') {
+      return params.pool.slice(0, 6).map(w => {
+        return { key: w.word, keyLabel: w.word, target: w.word, targetLabel: w.emoji, emoji: true };
+      });
+    }
     // mode 'case': huruf unit ↔ huruf lawan kasus
     const upper = params.letterCase === 'upper';
     return params.letters.slice(0, 6).map(ch => ({

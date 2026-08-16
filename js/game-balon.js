@@ -62,7 +62,9 @@ window.GameBalon = (() => {
         '</div>';
 
       busy = true;
-      later(() => AudioSys.speakItem(target), 400);
+      const playPrompt = () => AudioSys.speakItem(target, { flush: true });
+      window.lastGamePrompt = playPrompt;
+      later(playPrompt, 400);
       later(() => { busy = false; }, 900);
 
       area.querySelectorAll('.balloon').forEach(b => {
