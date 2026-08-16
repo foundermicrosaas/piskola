@@ -74,17 +74,13 @@
       return;
     }
 
-    // CTA pembelian (metode bayar menyusul — fungsi PRO siap)
+    // CTA pembelian memanggil Google Pay
     $('#btn-pro-cta').addEventListener('click', () => {
-      const btn = $('#btn-pro-cta');
-      const st = $('#pro-cta-status');
-      btn.textContent = '⏳ Menyiapkan...';
-      st.textContent = '';
-      setTimeout(() => {
-        btn.textContent = '💎 Aktifkan PRO Sekarang';
-        st.innerHTML = '🚧 <b>Metode pembayaran segera hadir!</b> Fungsi PRO sudah siap — sementara ini, aktivasi bisa lewat admin aplikasi.';
-        st.style.color = 'var(--orange)';
-      }, 900);
+      if (window.PaymentSys) {
+        PaymentSys.triggerPayment();
+      } else {
+        alert('Sistem pembayaran sedang dimuat. Silakan tunggu sebentar dan coba lagi.');
+      }
     });
   }
 

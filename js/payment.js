@@ -113,9 +113,14 @@ window.PaymentSys = (() => {
     alert('Terima kasih! Pembayaran berhasil. Akun Anda sekarang menjadi Piskola Pro! 🎉');
     const btn = document.getElementById('btn-upgrade-pro');
     if (btn) btn.style.display = 'none';
+    
+    // Redirect otomatis jika dipanggil dari halaman /pro
+    if (window.location.pathname.includes('/pro/')) {
+      window.location.href = '../index.html';
+    }
   }
 
-  return { onGooglePayLoaded };
+  return { onGooglePayLoaded, triggerPayment: onGooglePaymentButtonClicked };
 })();
 
 // Load listener
