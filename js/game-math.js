@@ -182,7 +182,6 @@ window.GameMath = (() => {
       const many = n > 10;
       area.innerHTML =
         promptBox(
-          '<span class="quiz-emoji big">' + e + '</span>' +
           '<div class="count-row' + (many ? ' many' : '') + '">' + new Array(n).fill(e).join('') + '</div>'
         ) +
         hint('Hitung ada berapa ' + e + ' ya?') +

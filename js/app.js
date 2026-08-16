@@ -39,29 +39,19 @@
   });
 
   const HURUF_GAMES = [
-    { id: 'tebak', type: 'tebak', title: 'Tebak Huruf', emoji: '🔊', desc: 'Dengar bunyi huruf, lalu pilih huruf yang benar.' },
-    { id: 'tracing', type: 'tracing', title: 'Tebak Bentuk Huruf', emoji: '✏️', desc: 'Ikuti garis putus-putus bentuk huruf dengan jarimu.' },
-    { id: 'pasangan', type: 'pasangan', title: 'Pasangan Huruf', emoji: '🔗', desc: 'Hubungkan huruf besar dengan huruf kecilnya.' },
-    { id: 'memory', type: 'memory', title: 'Kartu Pasangan', emoji: '🃏', desc: 'Buka kartu dan temukan pasangan hurufnya.' },
-    { id: 'urutan', type: 'urutan', title: 'Urutan Huruf', emoji: '🔢', desc: 'Huruf mana yang hilang di urutan ini?' },
-    { id: 'balon', type: 'balon', title: 'Balon Huruf', emoji: '🎈', desc: 'Pecahkan balon yang hurufnya benar.' },
-    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar & Tebak Kata', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
+    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
-    { id: 'hilang', type: 'hilang', title: 'Huruf Hilang', emoji: '🕵️', desc: 'Huruf mana yang hilang dari kata ini?' },
-    { id: 'susun', type: 'susun', title: 'Susun Kata', emoji: '🧩', desc: 'Susun huruf-hurufnya jadi kata yang benar.' }
+    { id: 'susun', type: 'susun', title: 'Susun Huruf Kata', emoji: '🧩', desc: 'Susun huruf-hurufnya jadi kata yang benar.' },
+    { id: 'hilang', type: 'hilang', title: 'Huruf Hilang dari Kata', emoji: '🕵️', desc: 'Huruf mana yang hilang dari kata ini?' },
+    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' }
   ];
 
   const SUKU_GAMES = [
-    { id: 'sambung', type: 'sambung', title: 'Sambung Huruf', emoji: '🔗', desc: 'Tarik garis dari b ke a, jadilah suku kata!' },
-    { id: 'tebak', type: 'tebak', title: 'Tebak Suku Kata', emoji: '🎧', desc: 'Dengar suku kata, lalu pilih yang benar.' },
-    { id: 'susun', type: 'susun', title: 'Susun Kata', emoji: '🧩', desc: 'Susun suku kata jadi kata yang benar.' },
-    { id: 'balon', type: 'balon', title: 'Balon Suku Kata', emoji: '🎈', desc: 'Pecahkan balon suku kata yang benar.' },
+    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
-    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar & Tebak Kata', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
-    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' },
+    { id: 'susun', type: 'susun', title: 'Susun Suku Kata', emoji: '🧩', desc: 'Susun suku kata jadi kata yang benar.' },
     { id: 'hilang', type: 'hilang', title: 'Suku Kata Hilang', emoji: '🕵️', desc: 'Suku kata mana yang hilang dari kata ini?' },
-    { id: 'memory', type: 'memory', title: 'Kartu Pasangan', emoji: '🃏', desc: 'Temukan pasangan suku kata dan gambarnya.' },
-    { id: 'pasangan', type: 'pasangan', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Hubungkan suku kata dengan gambarnya.' }
+    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' }
   ];
 
   const SYL_GROUPS = [
@@ -464,22 +454,41 @@
     $('#game-progress').textContent = '';
     $('#game-overlay').classList.add('hidden');
     UI.showScreen('game');
-    AudioSys.sfx.tap();
-
-    // Beri tahu audio sedang belajar apa (baca/hitung) → pujian & sapaan relevan
+    
+    // Tampilkan tirai mulai
+    const overlayStart = $('#game-start-overlay');
+    overlayStart.classList.remove('hidden');
+    
+    AudioSys.stopAudio();
     AudioSys.setSubject(game.type === 'math' ? 'hitung' : 'baca');
 
-    // Sambutan interaktif: "Yuk kita ..., {panggilan + nama} siap ya!"
+    // Sambutan interaktif
     const welcomeKey = game.type === 'math'
       ? game.mode
       : (game.id === 'tebak' ? (unit.kind === 'suku' ? 'tebak-suku' : 'tebak-huruf') : game.id);
     AudioSys.gameWelcome(profile(), WELCOME[welcomeKey] || 'Yuk kita main ' + game.title.toLowerCase());
 
-    const onDone = (res) => {
-      Store.setGameProgress(unit.id, game.id, res);
-      showResult(unit, game.id, res);
-    };
-    const common = { profile: profile(), onDone };
+    const btnStart = $('#btn-start-game');
+    const newBtnStart = btnStart.cloneNode(true);
+    btnStart.parentNode.replaceChild(newBtnStart, btnStart);
+    
+    newBtnStart.addEventListener('click', () => {
+      overlayStart.classList.add('hidden');
+      AudioSys.sfx.tap();
+      AudioSys.stopAudio(); // Stop audio instruksi kalau di-klik cepat
+
+      const onDone = (res) => {
+        Store.setGameProgress(unit.id, game.id, res);
+        showResult(unit, game.id, res);
+      };
+      const common = { profile: profile(), onDone };
+
+      // Set global variable so Repeat button knows what to repeat
+      window.lastGamePrompt = () => {
+        // Kita tidak punya referensi langsung ke prompt aktif di dalam game.js, 
+        // tapi kita bisa memanggil AudioSys.speakText dengan lastText.
+        if (window.lastSpeakText) AudioSys.speak(window.lastSpeakText);
+      };
 
     switch (game.type) {
       case 'tebak':
@@ -522,7 +531,9 @@
       case 'kuis':
         GameKuis.start({
           mode: game.mode,
-          pool: unit.kind === 'suku' ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) : WORDS_FLAT,
+          pool: unit.kind === 'suku' 
+            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
           ...common
         });
         break;
@@ -530,14 +541,20 @@
         GameHilang.start({
           mode: unit.kind === 'suku' ? 'suku' : 'huruf',
           letterCase: unit.letterCase, letters: unit.letters,
-          syllables: unit.syllables, pool: WORDS_FLAT, ...common
+          syllables: unit.syllables, 
+          pool: unit.kind === 'suku' 
+            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
+          ...common
         });
         break;
       case 'susun':
         GameSusun.start({
           mode: unit.kind === 'suku' ? 'suku' : 'huruf',
           letterCase: unit.letterCase,
-          pool: unit.kind === 'suku' ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) : WORDS_FLAT,
+          pool: unit.kind === 'suku' 
+            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
           ...common
         });
         break;
@@ -550,7 +567,8 @@
           onDone
         });
         break;
-    }
+      }
+    }); // end btnStart click
   }
 
   function showResult(unit, gameId, res) {
@@ -839,14 +857,26 @@
   function wireNav() {
     $('#btn-back-home').addEventListener('click', () => { AudioSys.sfx.tap(); goHome(); });
     $('#btn-back-unit').addEventListener('click', () => {
-      $('#game-overlay').classList.add('hidden'); // tutup layar hasil jika masih terbuka
+      if (!confirm('Apakah kamu yakin ingin berhenti bermain?')) return;
+      AudioSys.stopAudio();
+      $('#game-overlay').classList.add('hidden');
+      $('#game-start-overlay').classList.add('hidden');
       ['GameTebak', 'GameTracing', 'GameSambung', 'GamePasangan', 'GameMemory',
        'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
         const g = window[name];
-        if (g && g.cancel) g.cancel();
+        if (g && g.cancel) {
+          // If games returned progress on cancel we could save it, 
+          // for now just trigger their cleanup logic.
+          g.cancel(); 
+        }
       });
       AudioSys.sfx.tap();
-      goHome();
+      openUnit(currentUnitId); // go back to unit, not home
+    });
+
+    $('#btn-repeat-audio').addEventListener('click', () => {
+      AudioSys.sfx.tap();
+      if (window.lastGamePrompt) window.lastGamePrompt();
     });
 
     /* Tab Belajar Baca / Belajar Hitung */

@@ -135,11 +135,24 @@
   <!-- ===== Layar: Game ===== -->
   <section class="screen" id="screen-game">
     <header class="topbar sub">
-      <button class="back-btn" id="btn-back-unit" aria-label="Kembali">⬅️</button>
+      <button class="back-btn" id="btn-back-unit" aria-label="Berhenti">⏹️</button>
       <h2 id="game-title">Tebak Huruf</h2>
-      <span class="game-progress" id="game-progress"></span>
+      <div style="display:flex; align-items:center; gap: 8px;">
+        <button class="icon-btn" id="btn-repeat-audio" aria-label="Ulangi Suara" style="width:36px; height:36px; font-size:1.1rem; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05); color:#6b4c3a; border: 2px solid #f0dcc0; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;">🔁</button>
+        <span class="game-progress" id="game-progress"></span>
+      </div>
     </header>
     <div id="game-area"></div>
+    
+    <!-- Tirai Mulai Game -->
+    <div id="game-start-overlay" class="hidden" style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.9); z-index:100; display:flex; align-items:center; justify-content:center; flex-direction:column; padding: 20px; text-align:center;">
+      <div style="background:#fff9f0; padding:24px; border-radius:24px; border:3px solid #f0dcc0; box-shadow:0 8px 16px rgba(0,0,0,0.1); max-width:320px;">
+        <div style="font-size:3rem; margin-bottom:12px;">🎮</div>
+        <h3 id="start-title" style="color:#6b4c3a; margin-bottom:8px;">Bersiap ya!</h3>
+        <p id="start-desc" style="color:#8a6a58; margin-bottom:20px; line-height:1.4;">Dengarkan instruksinya baik-baik.</p>
+        <button class="btn btn-primary" id="btn-start-game" style="width:100%; font-size:1.1rem;">Mulai Bermain 🚀</button>
+      </div>
+    </div>
   </section>
 
   <!-- ===== Modal: Pengaturan ===== -->

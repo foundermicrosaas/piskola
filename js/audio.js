@@ -446,6 +446,7 @@ window.AudioSys = (() => {
   /* ================== ANTREAN SERIAL ================== */
 
   function playText(text, opts) {
+    window.lastSpeakText = text; // Save for repeat button
     return new Promise((resolve) => {
       let settled = false;
       const finish = () => { if (!settled) { settled = true; resolve(); } };
