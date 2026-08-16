@@ -65,6 +65,74 @@ window.Store = (() => {
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* kuota penuh */ }
   }
 
+  /* ---- Sinkronisasi Cloud (VPS) ---- */
+  const CloudSync = {
+    async register(userData) {
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(userData)
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Gagal mendaftar');
+        }
+        return await res.json();
+      } catch (e) { throw e; }
+    },
+    async login(username, pin) {
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({username, pin})
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Login gagal');
+        }
+        return await res.json();
+      } catch (e) { throw e; }
+    },
+    async syncProgress(uid, userObj) {
+      try {
+        await fetch('/api/sync?uid=' + uid, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(userObj)
+        });
+      } catch (e) { console.error('Gagal sync', e); }
+    }
+  };
+
+  const AdminSync = {
+    async fetchAllUsers() {
+      try {
+        const res = await fetch('/api/admin/users', { headers: { 'x-tts-token': getStoredAdminToken() } });
+        if (!res.ok) throw new Error('Gagal memuat pengguna');
+        const users = await res.json();
+        data.profiles = users; // Timpa sementara data lokal dengan seluruh data server
+        return users;
+      } catch(e) { throw e; }
+    },
+    async deleteUser(uid) {
+      await fetch('/api/admin/users/delete?uid=' + uid, { method: 'POST', headers: { 'x-tts-token': getStoredAdminToken() } });
+    }
+  };
+  function getStoredAdminToken() {
+    return localStorage.getItem('admin_password') || 'piskola123';
+  }
+
+  function saveAndSync(id) {
+    save();
+    if (id) {
+      const p = data.profiles.find(x => x.id === id);
+      const pr = data.progress[id];
+      if (p) CloudSync.syncProgress(id, { ...p, progress: pr });
+    }
+  }
+
   /* ---- Profil ---- */
   function getProfiles() { return data.profiles; }
   function getProfile() {
@@ -76,23 +144,27 @@ window.Store = (() => {
     data.activeId = id;
     const p = data.profiles.find(x => x.id === id);
     if (p) { p.lastActiveAt = Date.now(); }
-    save();
+    saveAndSync(id);
   }
   function addProfile(p) {
     const np = normProfile({
-      id: uid(), createdAt: Date.now(), lastActiveAt: Date.now(),
+      id: p.id || uid(), createdAt: p.createdAt || Date.now(), lastActiveAt: Date.now(),
       nama: p.nama, panggilan: p.panggilan || 'kakak', avatar: p.avatar || '🐰',
-      pin: p.pin || '1234'
+      pin: p.pin || '1234', tutorGender: p.tutorGender, muslim: p.muslim, isPro: p.isPro
     });
-    data.profiles.push(np);
+    const idx = data.profiles.findIndex(x => x.id === np.id);
+    if (idx >= 0) data.profiles[idx] = np;
+    else data.profiles.push(np);
+    
     data.activeId = np.id;
-    save();
+    if (p.progress) data.progress[np.id] = p.progress;
+    saveAndSync(np.id);
     return np;
   }
   function updateProfile(id, patch) {
     const p = data.profiles.find(x => x.id === id);
     if (p) Object.assign(p, patch);
-    save();
+    saveAndSync(id);
     return p;
   }
   function deleteProfile(id) {
@@ -106,7 +178,7 @@ window.Store = (() => {
      Akun gratis: 4 game pertama per unit; PRO: semua game terbuka. */
   function setPro(id, on) {
     const p = data.profiles.find(x => x.id === id);
-    if (p) { p.isPro = !!on; save(); }
+    if (p) { p.isPro = !!on; saveAndSync(id); }
     return p;
   }
 
@@ -116,7 +188,7 @@ window.Store = (() => {
     const id = pid || (getProfile() || {}).id;
     if (!id) return;
     delete data.progress[id];
-    save();
+    saveAndSync(id);
   }
 
   /* ---- Progres ---- */
@@ -138,7 +210,7 @@ window.Store = (() => {
       best: Math.max(prev.best, res.accuracy),
       plays: prev.plays + 1
     };
-    save();
+    saveAndSync(id);
     return data.progress[id][unitId][gameId];
   }
   function profileStars(pid) {
@@ -204,7 +276,7 @@ window.Store = (() => {
   /* ---- Pembayaran (Google Pay) ---- */
   function setPro(value) {
     const p = getProfile();
-    if (p) { p.isPro = !!value; save(); }
+    if (p) { p.isPro = !!value; saveAndSync(p.id); }
   }
   function isPro() {
     const p = getProfile();
@@ -213,6 +285,7 @@ window.Store = (() => {
 
   load();
   return {
+    CloudSync, AdminSync,
     getProfiles, getProfile, setActive, addProfile, updateProfile, deleteProfile, clearProgress, setPro, isPro,
     getProgress, getGameProgress, setGameProgress, profileStars, profileStats, allStats,
     getSettings, setMuted, setElevenLabs, getElevenLabs, resetAll

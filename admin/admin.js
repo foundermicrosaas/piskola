@@ -283,20 +283,34 @@
       auDraft.avatar = b.dataset.auAv;
     }));
 
-    $('#btn-au-save').addEventListener('click', () => {
+    $('#btn-au-save').addEventListener('click', async () => {
       const nama = $('#au-name').value.trim();
       const pin = $('#au-pin').value.trim();
       if (!nama) { $('#au-name').focus(); return; }
       if (pin && pin.length !== 4) { alert('PIN harus 4 angka.'); return; }
-      Store.addProfile({ nama, panggilan: auDraft.panggilan, avatar: auDraft.avatar, pin: pin || '1234' });
-      renderUsers();
-      renderAnalytics();
+      
+      const btn = $('#btn-au-save');
+      const originalText = btn.textContent;
+      btn.textContent = 'Menyimpan...';
+      try {
+        const username = nama.toLowerCase().replace(/[^a-z0-9]/g, '') + Math.floor(Math.random() * 1000);
+        await Store.CloudSync.register({
+          username, nama, panggilan: auDraft.panggilan, avatar: auDraft.avatar, pin: pin || '1234'
+        });
+        await Store.AdminSync.fetchAllUsers();
+        renderUsers();
+        renderAnalytics();
+      } catch(e) {
+        alert(e.message);
+      } finally {
+        btn.textContent = originalText;
+      }
     });
 
     $$('.user-row').forEach(row => {
       const id = row.dataset.uid;
       row.querySelectorAll('[data-act]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const act = btn.dataset.act;
           if (act === 'activate') {
             Store.setActive(id);
@@ -306,16 +320,20 @@
             const pr = Store.getProfiles().find(x => x.id === id);
             if (!pr) return;
             if (!pr.isPro && !confirm('Aktifkan PRO untuk ' + pr.nama + '? Semua game terbuka (4 game gratis pertama saja untuk akun lain).')) return;
-            Store.setPro(id, !pr.isPro);
+            Store.setPro(id, !pr.isPro); // ini akan sync ke server berkat saveAndSync
             renderUsers();
             renderAnalytics();
           } else if (act === 'edit') {
             editUser(id, row);
           } else if (act === 'del') {
             if (!confirm('Hapus pengguna ini beserta progresnya?')) return;
-            Store.deleteProfile(id);
-            renderUsers();
-            renderAnalytics();
+            btn.textContent = '⏳';
+            try {
+              await Store.AdminSync.deleteUser(id);
+              await Store.AdminSync.fetchAllUsers();
+              renderUsers();
+              renderAnalytics();
+            } catch(e) { alert('Gagal menghapus'); btn.textContent = '🗑️'; }
           }
         });
       });
@@ -623,7 +641,13 @@
 
   /* ==================== INIT ==================== */
 
-  function init() {
+  async function init() {
+    try {
+      await Store.AdminSync.fetchAllUsers();
+    } catch(e) {
+      console.error(e);
+      alert('Gagal mengambil data dari server database.');
+    }
     $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
     wireVoice();
     wireSettings();

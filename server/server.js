@@ -48,6 +48,21 @@ const PORT = Number(ENV.PORT) || 3000;
 const TOKEN = ENV.TTS_TOKEN || '';
 const ALLOWED = (ENV.ALLOWED_VOICES || '').split(',').map(v => v.trim()).filter(Boolean);
 const CACHE_DIR = path.resolve(__dirname, ENV.CACHE_DIR || 'audio-cache');
+const CONFIG_FILE = path.resolve(__dirname, 'config.json');
+const DB_FILE = path.resolve(__dirname, 'database.json');
+
+/* ---------- Database (JSON) ---------- */
+function loadDb() {
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    }
+  } catch (e) { console.error('[DB] Gagal memuat database', e); }
+  return { users: {} };
+}
+function saveDb(db) {
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); } catch (e) { console.error('[DB] Gagal simpan database', e); }
+}
 const MAX_RATE = Number(ENV.MAX_RATE) || 60;
 const MAX_TEXT = 300;
 const EL_BASE = 'https://api.elevenlabs.io';
@@ -171,13 +186,117 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  const u = new URL(req.url, 'http://x');
+  const p = u.pathname;
+
+  /* ---------- API DATABASE LOKAL ---------- */
+  function parseBody(req) {
+    return new Promise((resolve, reject) => {
+      let body = '';
+      req.on('data', d => { body += d; if (body.length > 512000) req.destroy(); });
+      req.on('end', () => {
+        try { resolve(JSON.parse(body)); } catch(e) { reject(e); }
+      });
+    });
+  }
+
+  if (p.startsWith('/api/')) {
+    const db = loadDb();
+    
+    // POST /api/register
+    if (p === '/api/register' && req.method === 'POST') {
+      try {
+        const data = await parseBody(req);
+        if (!data.username || !data.pin || !data.nama) { res.writeHead(400); res.end('Data tidak lengkap'); return; }
+        const uid = data.username.toLowerCase().trim();
+        if (db.users[uid]) { res.writeHead(409, {'Content-Type':'application/json'}); res.end(JSON.stringify({error: 'Username sudah dipakai'})); return; }
+        
+        db.users[uid] = {
+          id: uid, username: uid, pin: String(data.pin), nama: data.nama,
+          panggilan: data.panggilan || 'kakak', avatar: data.avatar || '🐰',
+          tutorGender: data.tutorGender || 'female', muslim: !!data.muslim, isPro: false,
+          createdAt: Date.now(), lastActiveAt: Date.now(), progress: {}
+        };
+        saveDb(db);
+        res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify(db.users[uid]));
+      } catch(e) { res.writeHead(400); res.end('Error'); }
+      return;
+    }
+    
+    // POST /api/login
+    if (p === '/api/login' && req.method === 'POST') {
+      try {
+        const data = await parseBody(req);
+        const uid = (data.username || '').toLowerCase().trim();
+        const uObj = db.users[uid];
+        if (!uObj || uObj.pin !== String(data.pin)) {
+          res.writeHead(401, {'Content-Type':'application/json'}); res.end(JSON.stringify({error: 'Username atau PIN salah'})); return;
+        }
+        uObj.lastActiveAt = Date.now();
+        saveDb(db);
+        res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify(uObj));
+      } catch(e) { res.writeHead(400); res.end('Error'); }
+      return;
+    }
+
+    // GET /api/sync?uid=...
+    if (p === '/api/sync' && req.method === 'GET') {
+      const uid = u.searchParams.get('uid');
+      if (!uid || !db.users[uid]) { res.writeHead(404); res.end('User not found'); return; }
+      res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify(db.users[uid]));
+      return;
+    }
+    
+    // POST /api/sync?uid=...
+    if (p === '/api/sync' && req.method === 'POST') {
+      try {
+        const uid = u.searchParams.get('uid');
+        if (!uid || !db.users[uid]) { res.writeHead(404); res.end('User not found'); return; }
+        const data = await parseBody(req);
+        
+        if (data.progress) db.users[uid].progress = data.progress;
+        if (data.nama) db.users[uid].nama = data.nama;
+        if (data.panggilan) db.users[uid].panggilan = data.panggilan;
+        if (data.avatar) db.users[uid].avatar = data.avatar;
+        if (data.tutorGender) db.users[uid].tutorGender = data.tutorGender;
+        if (data.muslim !== undefined) db.users[uid].muslim = !!data.muslim;
+        if (data.isPro !== undefined) db.users[uid].isPro = !!data.isPro;
+        
+        db.users[uid].lastActiveAt = Date.now();
+        saveDb(db);
+        res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify({ok: true}));
+      } catch(e) { res.writeHead(400); res.end('Error'); }
+      return;
+    }
+
+    // GET /api/admin/users
+    if (p === '/api/admin/users' && req.method === 'GET') {
+      if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
+      const usersList = Object.values(db.users);
+      res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify(usersList));
+      return;
+    }
+
+    // POST /api/admin/users/delete?uid=...
+    if (p === '/api/admin/users/delete' && req.method === 'POST') {
+      if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
+      const uid = u.searchParams.get('uid');
+      if (uid && db.users[uid]) {
+        delete db.users[uid];
+        saveDb(db);
+      }
+      res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify({ok: true}));
+      return;
+    }
+
+    res.writeHead(404); res.end('API Not Found');
+    return;
+  }
+
   if (req.method !== 'GET') { res.writeHead(405); res.end('method tidak diizinkan'); return; }
 
   if (!allowed(ip)) { res.writeHead(429); res.end('terlalu banyak permintaan — coba sebentar lagi'); return; }
   if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
-
-  const u = new URL(req.url, 'http://x');
-  const p = u.pathname;
 
   /* Daftar voice akun (untuk halaman admin) — cache 1 jam di memori */
   if (p === '/voices') {

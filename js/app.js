@@ -242,50 +242,33 @@
   }
 
   function renderLogin() {
-    const list = $('#login-accounts');
-    const profiles = Store.getProfiles();
-    loginSel = null;
-    $('#login-pin-row').classList.add('hidden');
-    $('#login-error').textContent = '';
+    $('#login-username').value = '';
     $('#login-pin').value = '';
-
-    list.innerHTML = profiles.length
-      ? profiles.map(pr =>
-          '<button class="account-row" data-lid="' + pr.id + '">' +
-            '<span class="account-avatar">' + pr.avatar + '</span>' +
-            '<span class="account-name">' + pr.nama + '</span>' +
-            '<span class="account-tag">' + panggilanLabel(pr) + '</span>' +
-          '</button>'
-        ).join('')
-      : '<p class="empty">Belum ada akun. Yuk daftarkan anak dulu! 🐣</p>';
-
-    $$('.account-row').forEach(row => {
-      row.addEventListener('click', () => {
-        $$('.account-row').forEach(r => r.classList.remove('selected'));
-        row.classList.add('selected');
-        loginSel = row.dataset.lid;
-        AudioSys.sfx.tap();
-        $('#login-pin-row').classList.remove('hidden');
-        $('#login-pin').focus();
-      });
-    });
+    $('#login-error').textContent = '';
   }
 
-  function doLogin() {
-    const pr = Store.getProfiles().find(x => x.id === loginSel);
+  async function doLogin() {
+    const username = $('#login-username').value.trim();
     const pin = $('#login-pin').value.trim();
-    if (!pr) { $('#login-error').textContent = 'Pilih akun dulu ya!'; return; }
+    if (!username) { $('#login-error').textContent = 'Ketik Username dulu ya!'; return; }
     if (pin.length !== 4) { $('#login-error').textContent = 'PIN harus 4 angka.'; return; }
-    if (pin !== pr.pin) {
-      $('#login-error').textContent = 'PIN salah, coba lagi ya!';
+    
+    $('#btn-login-go').textContent = '⏳ Memuat...';
+    $('#login-error').textContent = '';
+    
+    try {
+      const u = await Store.CloudSync.login(username, pin);
+      Store.addProfile(u); // Akan menyimpan ke localStorage & activeId
+      AudioSys.sfx.fanfare();
+      goHome();
+      AudioSys.greet(profile());
+      AudioSys.prewarm(AudioSys.greetText(profile()));
+    } catch (e) {
+      $('#login-error').textContent = '❌ ' + e.message;
       AudioSys.sfx.wrong();
-      return;
+    } finally {
+      $('#btn-login-go').textContent = 'Masuk ➡️';
     }
-    Store.setActive(pr.id);
-    AudioSys.sfx.fanfare();
-    goHome();
-    AudioSys.greet(profile());
-    AudioSys.prewarm(AudioSys.greetText(profile())); // siapkan sapaan tanpa kredit lagi
   }
 
   function goRegister() {
@@ -300,24 +283,36 @@
     setTimeout(() => $('#reg-name').focus(), 250);
   }
 
-  function doRegister() {
+  async function doRegister() {
+    const username = $('#reg-username').value.trim();
     const nama = $('#reg-name').value.trim();
     const pin = $('#reg-pin').value.trim();
     const pin2 = $('#reg-pin2').value.trim();
-    if (!nama) { $('#reg-error').textContent = 'Tulis nama anak dulu ya!'; return; }
+    if (!username) { $('#reg-error').textContent = 'Isi Username unik dulu ya!'; return; }
+    if (!nama) { $('#reg-error').textContent = 'Tulis nama panggilan anak!'; return; }
     if (!regDraft.panggilan) { $('#reg-error').textContent = 'Pilih panggilan (Kakak/Adek).'; return; }
     if (!regDraft.avatar) { $('#reg-error').textContent = 'Pilih avatar kesukaanmu.'; return; }
     if (pin.length !== 4) { $('#reg-error').textContent = 'PIN harus 4 angka.'; return; }
     if (pin !== pin2) { $('#reg-error').textContent = 'PIN dan ulangan PIN tidak sama.'; return; }
-    if (Store.getProfiles().some(p => p.nama.toLowerCase() === nama.toLowerCase())) {
-      $('#reg-error').textContent = 'Nama ini sudah terdaftar. Coba nama lain ya!';
-      return;
+    
+    $('#btn-register').textContent = '⏳ Menyimpan...';
+    $('#reg-error').textContent = '';
+    
+    try {
+      const u = await Store.CloudSync.register({
+        username, nama, pin, 
+        panggilan: regDraft.panggilan, avatar: regDraft.avatar
+      });
+      Store.addProfile(u);
+      AudioSys.sfx.fanfare();
+      goHome();
+      AudioSys.greet(profile());
+      AudioSys.prewarm(AudioSys.greetText(profile()));
+    } catch (e) {
+      $('#reg-error').textContent = '❌ ' + e.message;
+    } finally {
+      $('#btn-register').textContent = 'Daftar 🎉';
     }
-    Store.addProfile({ nama, panggilan: regDraft.panggilan, avatar: regDraft.avatar, pin });
-    AudioSys.sfx.fanfare();
-    goHome();
-    AudioSys.greet(profile());
-    AudioSys.prewarm(AudioSys.greetText(profile())); // sapaan nama dibuat SEKALI di awal, lalu dipakai ulang
   }
 
   function wireLogin() {
