@@ -60,9 +60,11 @@ window.GameSusun = (() => {
           ).join('') +
         '</div>';
         
+      // Tombol 🔁 memakai flush (inisiatif anak — boleh memotong suara).
       const playPrompt = () => AudioSys.speakItem(w.word, { flush: true });
       window.lastGamePrompt = playPrompt;
-      later(playPrompt, 350);
+      // Auto-play ronde berikutnya TANPA flush → pujian tidak dipotong.
+      later(() => AudioSys.speakItem(w.word), 350);
 
       const slots = area.querySelectorAll('.build-slot');
       const btns = area.querySelectorAll('.build-tile');

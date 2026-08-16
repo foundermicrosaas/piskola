@@ -556,24 +556,26 @@ window.AudioSys = (() => {
     // hindari pengulangan kata yang sama (mis. "keren! Keren!")
     suffixes = suffixes.filter(s => s.trim().toLowerCase().replace(/!/g, '') !== word);
     const suffix = pick(suffixes, 'suffix');
-    // beberapa pola agar tidak monoton
-    const patterns = [
-      starter + ', ' + n + ' ' + word + '!',
-      starter + '! ' + n + ' ' + word + '!',
-      n + ' ' + word + '! ' + starter + '!',
-      starter + ', ' + n + ' memang ' + word + '!'
-    ];
-    // Tutor muslim: selipkan pujian islami agar suasana belajar lebih islami
-    if (muslimOn(p)) {
-      patterns.push(
-        'MasyaAllah, ' + n + ' ' + word + '!',
-        'Alhamdulillah, ' + n + ' ' + word + '!',
-        'MasyaAllah! ' + n + ' memang ' + word + '!',
-        'Subhanallah, ' + n + ' ' + word + ' sekali!',
-        'MasyaAllah, tabarakallah, ' + n + ' ' + word + '!',
-        'Alhamdulillah! ' + n + ' hebat sekali!'
-      );
-    }
+    /* Tutor muslim: pujian ISLAMI mendominasi (hampir selalu MasyaAllah /
+       Alhamdulillah / Subhanallah), dengan satu pola umum sesekali agar tetap
+       bervariasi. Non-muslim: pola umum. */
+    const patterns = muslimOn(p)
+      ? [
+          'MasyaAllah, ' + n + ' ' + word + '!',
+          'MasyaAllah! ' + n + ' memang ' + word + '!',
+          'MasyaAllah, tabarakallah, ' + n + ' ' + word + '!',
+          'Alhamdulillah, ' + n + ' ' + word + '!',
+          'Alhamdulillah! ' + n + ' ' + word + '!',
+          'Subhanallah, ' + n + ' ' + word + '!',
+          'MasyaAllah, ' + n + ' ' + word + ' sekali!',
+          starter + ', ' + n + ' ' + word + '!'
+        ]
+      : [
+          starter + ', ' + n + ' ' + word + '!',
+          starter + '! ' + n + ' ' + word + '!',
+          n + ' ' + word + '! ' + starter + '!',
+          starter + ', ' + n + ' memang ' + word + '!'
+        ];
     return patterns[(Math.random() * patterns.length) | 0] + suffix;
   }
 
@@ -584,21 +586,30 @@ window.AudioSys = (() => {
   function praiseStreak(p) {
     let pool = STREAK;
     if (muslimOn(p)) {
-      pool = pool.concat([
+      pool = [
         'MasyaAllah, ' + nameCall(p) + ' hebat sekali! Teruskan!',
-        'Alhamdulillah, ' + nameCall(p) + ' menjawab berturut-turut! Hebat!'
-      ]);
+        'MasyaAllah, ' + nameCall(p) + ' menjawab berturut-turut! Hebat!',
+        'Alhamdulillah, ' + nameCall(p) + ' hebat sekali! Teruskan!',
+        'Alhamdulillah, ' + nameCall(p) + ' makin jago! Semangat!',
+        'Subhanallah, ' + nameCall(p) + ' menjawab berturut-turut!',
+        'MasyaAllah, ' + nameCall(p) + ' makin pintar! Ayo lanjutkan!',
+        'Wah, %N% hebat sekali! Teruskan!'
+      ];
     }
     speak(pick(pool, 'streak').replace('%N%', nameCall(p)), praiseOpts());
   }
   function praiseGame(p, stars) {
     let pool = stars >= 3 ? GAME_DONE_3 : GAME_DONE;
     if (muslimOn(p)) {
-      pool = pool.concat([
-        (stars >= 3 ? 'MasyaAllah! ' : 'Alhamdulillah, ') + '%N% dapat bintang %S%!',
+      pool = [
+        'MasyaAllah! %N% dapat bintang %S%!',
         'MasyaAllah, %N% hebat sekali, dapat bintang %S%!',
-        'Alhamdulillah, %N% menyelesaikan dengan bintang %S%!'
-      ]);
+        'MasyaAllah, tabarakallah! %N% mendapat bintang %S%!',
+        'Alhamdulillah! %N% dapat bintang %S%!',
+        'Alhamdulillah, %N% menyelesaikan dengan bintang %S%!',
+        'Subhanallah! %N% dapat bintang %S%!',
+        'Luar biasa! %N% dapat bintang %S%!'
+      ];
     }
     const t = pick(pool, 'gamedone').replace('%N%', nameCall(p)).replace('%S%', String(stars));
     speak(t, praiseOpts());
@@ -606,10 +617,15 @@ window.AudioSys = (() => {
   function praiseUnit(p) {
     let pool = UNIT_DONE;
     if (muslimOn(p)) {
-      pool = pool.concat([
+      pool = [
         'MasyaAllah! ' + nameCall(p) + ' sudah mahir unit ini!',
-        'Alhamdulillah, ' + nameCall(p) + ' menuntaskan unit ini! Hebat!'
-      ]);
+        'MasyaAllah! ' + nameCall(p) + ' menuntaskan unit ini! Hebat!',
+        'Alhamdulillah! ' + nameCall(p) + ' sudah menguasai unit ini!',
+        'Alhamdulillah, ' + nameCall(p) + ' menuntaskan unit ini! Hebat!',
+        'Subhanallah! ' + nameCall(p) + ' sudah selesai unit ini!',
+        'MasyaAllah, ' + nameCall(p) + ' hebat sekali! Unit ini selesai!',
+        'Keren! ' + nameCall(p) + ' sudah mahir unit ini!'
+      ];
     }
     speak(pick(pool, 'unitdone').replace('%N%', nameCall(p)), praiseOpts());
   }

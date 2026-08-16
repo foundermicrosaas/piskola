@@ -121,7 +121,10 @@ window.Store = (() => {
     }
   };
   function getStoredAdminToken() {
-    return localStorage.getItem('admin_password') || 'piskola123';
+    // Token TTS dari server (didapat lewat /tts?action=get-config) — dipakai
+    // untuk panggilan API admin yang dilindungi token (header x-tts-token).
+    const t = (data.settings.elevenlabs || {}).serverToken;
+    return t || localStorage.getItem('admin_password') || 'piskola123';
   }
 
   function saveAndSync(id) {

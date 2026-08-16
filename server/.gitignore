@@ -3,3 +3,7 @@ audio-cache/
 
 # API key & token server — rahasia
 .env
+
+# Database & konfigurasi runtime server (dibuat otomatis di VPS)
+database.json
+app-config.json

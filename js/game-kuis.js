@@ -84,9 +84,12 @@ window.GameKuis = (() => {
       }
 
       busy = true;
+      // Tombol 🔁 memakai flush (inisiatif anak — boleh memotong suara).
       const playPrompt = () => AudioSys.speakItem(target.word, { flush: true });
       window.lastGamePrompt = playPrompt;
-      later(playPrompt, 400);
+      // Auto-play ronde berikutnya TANPA flush → pujian yang masih berbunyi
+      // tidak dipotong oleh pertanyaan berikutnya (antrean serial).
+      later(() => AudioSys.speakItem(target.word), 400);
       later(() => { busy = false; }, 1000);
 
       area.querySelectorAll('.choice-btn').forEach(btn => {

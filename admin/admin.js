@@ -130,10 +130,21 @@
 
   /* ==================== ANALITIK ==================== */
 
+  let serverDbFailed = false; // true bila server database tidak terhubung saat init
+
   function renderAnalytics() {
     const profiles = Store.getProfiles();
     const all = Store.allStats();
     const el = $('#admin-analytics');
+    // Peringatan bila server database tidak terhubung (tidak memblokir admin)
+    const dbWarn = serverDbFailed
+      ? '<div class="admin-card" style="border:2px dashed #f0a8a8; margin-bottom:12px;">' +
+          '<h3 style="color:#d64545;">⚠️ Server database tidak terhubung</h3>' +
+          '<p class="admin-note">Gagal mengambil data pengguna dari server. Pastikan layanan TTS di VPS berjalan ' +
+          '(<b>systemctl status tts</b>) dan blok <b>location /api/</b> ada di Nginx — lihat DEPLOY-GIT.md.<br>' +
+          'Data di bawah ini berasal dari perangkat ini saja (lokal).</p>' +
+        '</div>'
+      : '';
 
     if (!profiles.length) {
       el.innerHTML = '<p class="empty">Belum ada pengguna. Daftarkan anak pertama di tab 👧 Pengguna.</p>';
@@ -192,6 +203,7 @@
     }).join('');
 
     el.innerHTML =
+      dbWarn +
       '<div class="admin-head"><h3>📊 Ringkasan</h3></div>' +
       summary +
       '<div class="admin-card"><h3>🗺️ Kemajuan per Unit</h3>' + unitRows + '</div>' +
@@ -642,11 +654,30 @@
   /* ==================== INIT ==================== */
 
   async function init() {
+    // Ambil token & konfigurasi TTS dari server supaya panggilan API admin
+    // (yang dilindungi token) terautentikasi — lihat server.js /tts?action=get-config.
+    try {
+      const cfgUrl = new URL('/tts', location.href);
+      cfgUrl.searchParams.set('action', 'get-config');
+      const r = await fetch(cfgUrl.toString(), { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+      if (r.ok) {
+        const cfg = await r.json();
+        const cur = Store.getElevenLabs();
+        Store.setElevenLabs(Object.assign({}, cur, {
+          serverToken: cfg.serverToken || cur.serverToken || '',
+          femaleVoiceId: cfg.femaleVoiceId || cur.femaleVoiceId || '',
+          maleVoiceId: cfg.maleVoiceId || cur.maleVoiceId || '',
+          speed: cfg.speed || cur.speed || 0.75
+        }));
+      }
+    } catch (e) { /* server TTS belum hidup — lanjut dengan data lokal */ }
+
     try {
       await Store.AdminSync.fetchAllUsers();
+      serverDbFailed = false;
     } catch(e) {
       console.error(e);
-      alert('Gagal mengambil data dari server database.');
+      serverDbFailed = true; // jangan blokir admin — tampilkan peringatan di halaman analitik
     }
     $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
     wireVoice();

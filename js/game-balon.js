@@ -59,9 +59,11 @@ window.GameBalon = (() => {
         '</div>';
 
       busy = true;
+      // Tombol 🔁 memakai flush (inisiatif anak — boleh memotong suara).
       const playPrompt = () => AudioSys.speakItem(target, { flush: true });
       window.lastGamePrompt = playPrompt;
-      later(playPrompt, 400);
+      // Auto-play ronde berikutnya TANPA flush → pujian tidak dipotong.
+      later(() => AudioSys.speakItem(target), 400);
       later(() => { busy = false; }, 900);
 
       area.querySelectorAll('.balloon').forEach(b => {

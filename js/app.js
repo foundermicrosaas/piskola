@@ -465,6 +465,7 @@
   /* ==================== GAME ==================== */
 
   function startGame(unit, game) {
+    cancelAllGames(); // penting: timer/antrean game sebelumnya tidak boleh menimpa layar game baru
     $('#game-title').textContent = game.title;
     $('#game-progress').textContent = '';
     $('#game-overlay').classList.add('hidden');
@@ -884,36 +885,29 @@
 
   /* ==================== NAVIGASI ==================== */
 
+  /* Batalkan SEMUA game yang masih berjalan — dipakai saat game baru dimulai
+     dan saat keluar dari layar game, supaya timer lama tidak menimpa layar
+     game berikutnya ("game sebelumnya tiba-tiba muncul"). */
+  function cancelAllGames() {
+    ['GameTebak', 'GameTracing', 'GameSambung', 'GamePasangan', 'GameMemory',
+     'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
+      const g = window[name];
+      if (g && g.cancel) g.cancel();
+    });
+  }
+
   function wireNav() {
     $('#btn-back-home').addEventListener('click', () => { AudioSys.sfx.tap(); goHome(); });
-    $('#btn-back-unit').addEventListener('click', () => {
-      if (!confirm('Apakah kamu yakin ingin berhenti bermain?')) return;
-      AudioSys.stopAudio();
-      $('#game-overlay').classList.add('hidden');
-      $('#game-start-overlay').classList.add('hidden');
-      ['GameTebak', 'GameTracing', 'GameSambung', 'GamePasangan', 'GameMemory',
-       'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
-        const g = window[name];
-        if (g && g.cancel) {
-          g.cancel(); 
-        }
-      });
-      AudioSys.sfx.tap();
-      openUnit(currentUnitId); // go back to unit, not home
-    });
 
+    /* Tombol ⏹️ (berhenti) sudah dihapus — cukup tombol 🏠 yang mengonfirmasi
+       sebelum keluar dari game. Progres game yang sudah selesai tetap tersimpan
+       (Store.setGameProgress → sinkron ke server). */
     $('#btn-back-home-game').addEventListener('click', () => {
       if (!confirm('Apakah kamu yakin ingin berhenti bermain dan kembali ke Beranda?')) return;
       AudioSys.stopAudio();
       $('#game-overlay').classList.add('hidden');
       $('#game-start-overlay').classList.add('hidden');
-      ['GameTebak', 'GameTracing', 'GameSambung', 'GamePasangan', 'GameMemory',
-       'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
-        const g = window[name];
-        if (g && g.cancel) {
-          g.cancel(); 
-        }
-      });
+      cancelAllGames();
       AudioSys.sfx.tap();
       goHome(); // go directly home
     });

@@ -137,9 +137,11 @@ window.GameMath = (() => {
 
     function speakPrompt(text, after) {
       busy = true;
+      // Tombol 🔁 memakai flush (inisiatif anak — boleh memotong suara).
       const playPrompt = () => AudioSys.speak(text, { rate: 0.78, pitch: 1.15, flush: true });
       window.lastGamePrompt = playPrompt;
-      later(playPrompt, after || 350);
+      // Auto-play ronde berikutnya TANPA flush → pujian tidak dipotong.
+      later(() => AudioSys.speak(text, { rate: 0.78, pitch: 1.15 }), after || 350);
       later(() => { busy = false; }, (after || 350) + 900);
     }
 
