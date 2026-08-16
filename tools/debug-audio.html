@@ -145,19 +145,39 @@
     const voiceId = document.getElementById('t-voice').value.trim();
     const text = document.getElementById('t-text').value.trim() || 'Halo!';
     const st = document.getElementById('test-status');
-    if (!apiKey) { st.textContent = '❌ API Key kosong'; return; }
+    const el = Store.getElevenLabs();
+
     if (!voiceId) { st.textContent = '❌ Voice ID kosong'; return; }
+    
     st.textContent = '⏳ Menghubungi ElevenLabs...';
-    log('Uji langsung: voice=' + voiceId + ' text=' + text.slice(0, 30));
+    log('Uji: voice=' + voiceId + ' text=' + text.slice(0, 30));
+
     try {
-      const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + encodeURIComponent(voiceId), {
-        method: 'POST',
-        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.85, style: 0.55, use_speaker_boost: true } })
-      });
+      let res;
+      // Jika Uji Pakai Config Tersimpan diklik, dan serverTts aktif, kita coba lewat server proxy
+      // (jika apiKey kosong di input text, kita asumsikan ingin pakai proxy)
+      if (!apiKey && el.serverTts) {
+        const url = new URL(el.serverUrl || '/tts', location.href);
+        if (!/\/tts$/i.test(url.pathname)) url.pathname = url.pathname.replace(/\/+$/, '') + '/tts';
+        url.searchParams.set('text', text);
+        url.searchParams.set('voice', voiceId);
+        if (el.speed) url.searchParams.set('speed', el.speed);
+        if (el.serverToken) url.searchParams.set('token', el.serverToken);
+        log('Memanggil server proxy: ' + url.pathname);
+        res = await fetch(url.toString());
+      } else {
+        if (!apiKey) { st.textContent = '❌ API Key kosong dan Mode Server tidak aktif.'; return; }
+        log('Memanggil langsung ke ElevenLabs API');
+        res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + encodeURIComponent(voiceId), {
+          method: 'POST',
+          headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.85, style: 0.55, use_speaker_boost: true } })
+        });
+      }
+
       if (!res.ok) {
         const d = await res.text().catch(() => '');
-        st.textContent = '❌ ElevenLabs ' + res.status + ': ' + d.slice(0, 200);
+        st.textContent = '❌ Error ' + res.status + ': ' + d.slice(0, 200);
         log('Gagal: ' + res.status + ' ' + d.slice(0, 100));
         return;
       }
@@ -179,8 +199,14 @@
     const voiceId = gender === 'male'
       ? (el.maleVoiceId || el.femaleVoiceId || el.voiceId)
       : (el.femaleVoiceId || el.maleVoiceId || el.voiceId);
-    document.getElementById('t-apikey').value = el.apiKey || '';
-    document.getElementById('t-voice').value = voiceId || '';
+    
+    // Jangan hapus API key yang sudah diisi manual jika di config tersimpan kosong
+    if (el.apiKey) {
+      document.getElementById('t-apikey').value = el.apiKey;
+    }
+    if (voiceId) {
+      document.getElementById('t-voice').value = voiceId;
+    }
     await testDirect();
   }
 
