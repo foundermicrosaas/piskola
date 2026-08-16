@@ -673,7 +673,10 @@
 
     // 2. Cek Kelulusan Unit (Sertifikat)
     let unitLulus = true;
-    unit.games.forEach(g => {
+    const FREE_GAMES = 4;
+    const accessibleGames = p.isPro ? unit.games : unit.games.slice(0, FREE_GAMES);
+    
+    accessibleGames.forEach(g => {
       const pr = Store.getGameProgress(unit.id, g.id, p.id);
       if (!pr || pr.stars === 0) unitLulus = false;
     });
