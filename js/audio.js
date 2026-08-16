@@ -319,16 +319,7 @@ window.AudioSys = (() => {
     if (!cfg) return Promise.resolve({ ok: false, msg: 'ElevenLabs belum dikonfigurasi' });
     if (Date.now() < elFailedUntil) return Promise.resolve({ ok: false, msg: 'fallback (kegagalan sebelumnya)' });
     
-    // Perbaikan pelafalan untuk 1 huruf (ElevenLabs v2 sering baca bahasa Inggris)
     let text = rawText.trim();
-    if (/^[A-Za-z]$/.test(text)) {
-      const map = {
-        'a': 'a', 'b': 'bé', 'c': 'cé', 'd': 'dé', 'e': 'é', 'f': 'èf', 'g': 'gé', 'h': 'ha', 'i': 'i', 'j': 'jé',
-        'k': 'ka', 'l': 'èl', 'm': 'èm', 'n': 'èn', 'o': 'o', 'p': 'pé', 'q': 'qi', 'r': 'èr', 's': 'ès', 't': 'té',
-        'u': 'u', 'v': 'vi', 'w': 'wé', 'x': 'èks', 'y': 'yé', 'z': 'zèt'
-      };
-      text = map[text.toLowerCase()] || text;
-    }
     
     const speed = elSpeedFor(cfg, opts ? opts.rate : null);
     const volume = cfg.gender === 'female' ? 0.6 : 1.0; // Turunkan volume tutor perempuan agar seimbang
@@ -466,6 +457,8 @@ window.AudioSys = (() => {
         elSpeak(text, cfg, { rate: opts ? opts.rate : null }).then(r => {
           if (r && r.ok) {
             done(); // audio ElevenLabs sudah diputar & selesai
+          } else if (r && r.msg === 'dibatalkan') {
+            done(); // dibatalkan oleh pengguna (mis. menekan tombol lain), jangan putar WebSpeech
           } else {
             // ElevenLabs gagal → fallback ke Web Speech
             const msg = (r && r.msg) || '';
@@ -506,19 +499,23 @@ window.AudioSys = (() => {
     elSpeak(text, cfg, { play: false }).catch(() => { });
   }
 
-  /* Nama huruf ditulis TANPA aksen (spelling umum di buku anak): sebagian
-     engine TTS membaca 'wé' sebagai dua suku kata ('we-e' → terdengar
-     "we we"). 'be, ce, de, ... we, eks' dibaca pelan & jelas oleh TTS. */
+  /* Nama huruf ditulis DENGAN aksen (é, è) agar engine TTS multibahasa
+     seperti ElevenLabs membaca huruf mati dengan jelas dan tidak terdengar
+     seperti bahasa Inggris (contoh: 'b' dibaca 'bi', 'i' dibaca 'ai'). */
   const LETTER_NAMES = {
-    a: 'a', b: 'be', c: 'ce', d: 'de', e: 'e', f: 'ef', g: 'ge', h: 'ha', i: 'i',
-    j: 'je', k: 'ka', l: 'el', m: 'em', n: 'en', o: 'o', p: 'pe', q: 'ki', r: 'er',
-    s: 'es', t: 'te', u: 'u', v: 've', w: 'we', x: 'eks', y: 'ye', z: 'zet'
+    a: 'a', b: 'bé', c: 'cé', d: 'dé', e: 'é', f: 'èf', g: 'gé', h: 'ha', i: 'i',
+    j: 'jé', k: 'ka', l: 'èl', m: 'èm', n: 'èn', o: 'o', p: 'pé', q: 'qi', r: 'èr',
+    s: 'ès', t: 'té', u: 'u', v: 'vi', w: 'wé', x: 'èks', y: 'yé', z: 'zèt'
   };
 
   /* Benda yang diucapkan: 1 huruf → nama huruf; suku kata/kata → teks pelan */
-  function speakItem(item, opts = {}) {
-    if (item.length === 1) speak(LETTER_NAMES[item.toLowerCase()] || item, { rate: 0.7, ...opts });
-    else speak(item, { rate: 0.72, ...opts });
+  function speakItem(item, opts) {
+    const txt = (item.length === 1) ? (LETTER_NAMES[item.toLowerCase()] || item) : item.toLowerCase();
+    speak(txt, Object.assign({ rate: 0.7 }, opts));
+  }
+  function prewarmItem(item) {
+    const txt = (item.length === 1) ? (LETTER_NAMES[item.toLowerCase()] || item) : item.toLowerCase();
+    prewarm(txt);
   }
   function speakLetter(letter) { speakItem(letter); }
 
@@ -669,7 +666,7 @@ window.AudioSys = (() => {
   return {
     setMuted, isMuted, speak, speakItem, speakLetter, testVoice,
     refreshConfig: refreshEl, // dipanggil app.js setelah fetch config dari server
-    prewarm, angkaKeKata,
+    prewarm, prewarmItem, angkaKeKata,
     setSubject,
     praiseCorrect, praiseStreak, praiseGame, praiseUnit, encourage, greet, greetText, gameWelcome,
     sfx

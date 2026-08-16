@@ -28,8 +28,10 @@ window.GameKuis = (() => {
   function start(params) {
     active = true;
     timers = [];
-    const mode = MODE_INFO[params.mode] || MODE_INFO.sound2pic;
     const pool = params.pool.filter(w => w.word.length <= 7);
+    
+    // Siapkan audio kata di background
+    pool.forEach(q => AudioSys.prewarmItem(q.word));
 
     let round = 0, correct = 0, attempts = 0, busy = false;
 
