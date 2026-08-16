@@ -48,7 +48,6 @@ const PORT = Number(ENV.PORT) || 3000;
 const TOKEN = ENV.TTS_TOKEN || '';
 const ALLOWED = (ENV.ALLOWED_VOICES || '').split(',').map(v => v.trim()).filter(Boolean);
 const CACHE_DIR = path.resolve(__dirname, ENV.CACHE_DIR || 'audio-cache');
-const CONFIG_FILE = path.resolve(__dirname, 'config.json');
 const DB_FILE = path.resolve(__dirname, 'database.json');
 
 /* ---------- Database (JSON) ---------- */

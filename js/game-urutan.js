@@ -21,26 +21,31 @@ window.GameUrutan = (() => {
   function start(params) {
     active = true;
     timers = [];
-    const letters = params.letters;   // sudah urut alfabet
-    const display = (l) => '<span class="trace-font">' + l + '</span>';
+    const items = params.letters;   // array urut: huruf (mis. A..I) atau suku kata (ba, bi, bu, be, bo)
+    const isSyl = !!(items[0] && String(items[0]).length === 2);
+    const display = isSyl ? (l) => l : (l) => '<span class="trace-font">' + l + '</span>';
+    const hint = isSyl ? 'Suku kata mana yang hilang?' : 'Huruf mana yang hilang?';
 
-    let round = 0, correct = 0, attempts = 0;
+    let round = 0, correct = 0, attempts = 0, prevStart = -1;
 
     const area = document.getElementById('game-area');
     const progressEl = document.getElementById('game-progress');
-
-    // Buat 6 jendela 4-huruf berurutan (tanpa pengulangan posisi awal yang sama)
-    const maxStart = letters.length - 4;
-    const starts = shuffle(Array.from({ length: maxStart + 1 }, (_, i) => i)).slice(0, ROUNDS);
+    // Jendela 4-item berurutan; aman untuk kelompok kecil (mis. 5 suku kata).
+    const maxStart = Math.max(0, items.length - 4);
 
     function renderRound() {
       if (!active) return;
       progressEl.textContent = (round + 1) + '/' + ROUNDS;
-      const s = starts[round];
-      const window = letters.slice(s, s + 4);
+      // Pilih jendela acak tiap ronde (boleh sama, posisi hilangnya beda).
+      // Menghindari jendela yang persis sama berturut-turut.
+      let s = (Math.random() * (maxStart + 1)) | 0;
+      let guard = 0;
+      while (s === prevStart && guard++ < 8) s = (Math.random() * (maxStart + 1)) | 0;
+      prevStart = s;
+      const window = items.slice(s, s + 4);
       const hiddenIdx = (Math.random() * 4) | 0;
       const hidden = window[hiddenIdx];
-      const others = letters.filter(l => !window.includes(l));
+      const others = items.filter(l => !window.includes(l));
       const options = shuffle([hidden, ...shuffle(others).slice(0, 3)]);
 
       const slots = window.map((l, i) =>
@@ -50,7 +55,7 @@ window.GameUrutan = (() => {
       ).join('');
 
       area.innerHTML =
-        '<p class="match-hint">Huruf mana yang hilang?</p>' +
+        '<p class="match-hint">' + hint + '</p>' +
         '<div class="seq-row">' + slots + '</div>' +
         '<div class="choice-grid">' +
           options.map((l, i) =>

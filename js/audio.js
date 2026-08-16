@@ -313,18 +313,20 @@ window.AudioSys = (() => {
      ANTI-MACET: fetch dibatasi 10 dtk (AbortController) dan antrean selalu
      berjalan, jadi permintaan yang menggantung TIDAK pernah membuat suara
      berikutnya (atau tombol 'dengar lagi') ikut macet. */
+  /* Panggil ElevenLabs langsung dari browser. Dipakai untuk mode non-server,
+     dan sebagai cadangan otomatis bila server TTS gagal (dengan API key). */
   function elSpeak(rawText, cfgOverride, opts) {
     const cfg = cfgOverride || elCfg;
     const play = opts ? opts.play !== false : true;
     if (!cfg) return Promise.resolve({ ok: false, msg: 'ElevenLabs belum dikonfigurasi' });
     if (Date.now() < elFailedUntil) return Promise.resolve({ ok: false, msg: 'fallback (kegagalan sebelumnya)' });
-    
+
     let text = rawText.trim();
-    
+
     const speed = elSpeedFor(cfg, opts ? opts.rate : null);
     const volume = cfg.gender === 'female' ? 0.6 : 1.0; // Turunkan volume tutor perempuan agar seimbang
     const key = cfg.voiceId + '|' + text; // kunci cache TIDAK TERMASUK kecepatan agar bisa ganti kecepatan tanpa potong pulsa/kuota
-    
+
     const gen = cancelGen;
     const serverMode = !!(cfg.serverTts && cfg.serverUrl);
 
@@ -334,6 +336,51 @@ window.AudioSys = (() => {
     let resolveItem, rejectItem;
     const itemPromise = new Promise((res, rej) => { resolveItem = res; rejectItem = rej; });
 
+    /* Pemanggil langsung ke api.elevenlabs.io (tanpa server). */
+    function directSpeak() {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 10000); // 10 dtk, jangan pernah macet
+      return fetch('https://api.elevenlabs.io/v1/text-to-speech/' + encodeURIComponent(cfg.voiceId), {
+        method: 'POST',
+        headers: { 'xi-api-key': cfg.apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.45,
+            similarity_boost: 0.85,
+            style: 0.55,
+            use_speaker_boost: true
+          }
+        }),
+        signal: ctrl.signal
+      }).then(async (res) => {
+        clearTimeout(to);
+        if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
+        if (!res.ok) {
+          const detail = await res.text().catch(() => '');
+          console.warn('[ElevenLabs] gagal (' + res.status + '):', detail.slice(0, 300));
+          const r = { ok: false, msg: 'ElevenLabs ' + res.status + ' ' + detail.slice(0, 160) };
+          elFailedUntil = Date.now() + 2000;
+          resolveItem(r);
+          return r;
+        }
+        const blob = await res.blob();
+        if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
+        cacheSet(key, blob);
+        if (play) {
+          return playBlob(blob, speed, volume).then(() => { const r = { ok: true, msg: 'ok' }; resolveItem(r); return r; });
+        }
+        const r = { ok: true, msg: 'ok' }; resolveItem(r); return r;
+      }).catch(err => {
+        clearTimeout(to);
+        const r = { ok: false, msg: 'Gagal terhubung: ' + err.message };
+        if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 2000;
+        resolveItem(r);
+        return r;
+      });
+    }
+
     elChain = elChain.then(() =>
       cacheGet(key).then(hit => {
         if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
@@ -342,64 +389,31 @@ window.AudioSys = (() => {
           return p.then(r => { resolveItem(r); return r; });
         }
 
-        /* Mode server: server meng-generate & meng-cache sekali untuk SEMUA user */
+        /* Mode server: server meng-generate & meng-cache sekali untuk SEMUA user.
+           Kalau server gagal (mati / 502), FALLBACK langsung ke ElevenLabs dari
+           browser bila API key tersedia — supaya suara TIDAK jatuh ke robot. */
         if (serverMode) {
           return serverSpeak(cfg, text, speed, volume, play).then(r => {
             if (r.ok && r.blob) cacheSet(key, r.blob);
-            if (!r.ok && r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 2000;
+            if (r.ok || r.msg === 'dibatalkan') { resolveItem(r); return r; }
+            if (cfg.apiKey) {
+              console.info('[Audio] Server TTS gagal, fallback langsung:', r.msg);
+              return directSpeak();
+            }
+            if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 2000;
             resolveItem(r);
             return r;
           });
         }
 
-        const ctrl = new AbortController();
-        const to = setTimeout(() => ctrl.abort(), 10000); // 10 dtk, jangan pernah macet
-        return fetch('https://api.elevenlabs.io/v1/text-to-speech/' + encodeURIComponent(cfg.voiceId), {
-          method: 'POST',
-          headers: { 'xi-api-key': cfg.apiKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text,
-            model_id: 'eleven_multilingual_v2',
-            voice_settings: {
-              stability: 0.45,
-              similarity_boost: 0.85,
-              style: 0.55,
-              use_speaker_boost: true
-            }
-          }),
-          signal: ctrl.signal
-        }).then(async (res) => {
-          clearTimeout(to);
-          if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
-          if (!res.ok) {
-            const detail = await res.text().catch(() => '');
-            console.warn('[ElevenLabs] gagal (' + res.status + '):', detail.slice(0, 300));
-            const r = { ok: false, msg: 'ElevenLabs ' + res.status + ' ' + detail.slice(0, 160) };
-            elFailedUntil = Date.now() + 2000;
-            resolveItem(r);
-            return r;
-          }
-          const blob = await res.blob();
-          if (gen !== cancelGen) { resolveItem({ ok: false, msg: 'dibatalkan' }); return { ok: false, msg: 'dibatalkan' }; }
-          cacheSet(key, blob);
-          if (play) {
-            return playBlob(blob, speed, volume).then(() => { const r = { ok: true, msg: 'ok' }; resolveItem(r); return r; });
-          }
-          const r = { ok: true, msg: 'ok' }; resolveItem(r); return r;
-        }).catch(err => {
-          clearTimeout(to);
-          const r = { ok: false, msg: 'Gagal terhubung: ' + err.message };
-          if (r.msg !== 'dibatalkan') elFailedUntil = Date.now() + 2000;
-          resolveItem(r);
-          return r;
-        });
+        return directSpeak();
       }).catch(err => {
         const r = { ok: false, msg: 'Error internal: ' + err.message };
         resolveItem(r);
         return r;
       })
     );
-    return itemPromise; // ← per-item, bukan seluruh chain
+    return itemPromise;
   }
 
   function stopAudio() {

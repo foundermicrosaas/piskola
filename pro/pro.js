@@ -9,15 +9,16 @@
     return new URLSearchParams(location.search).get(name) || '';
   }
 
-  /* 6 game PRO (indeks 4–9) per kategori kurikulum */
+  /* 6 game PRO (indeks 4–9) per kategori kurikulum — disesuaikan dengan
+     daftar game asli di app.js (4 game pertama gratis, sisanya PRO). */
   const PRO_GAMES = [
     { cat: '📖 Belajar Baca — Huruf', emoji: '🔠', items: [
-      ['Urutan Huruf', '🔢'], ['Balon Huruf', '🎈'], ['Dengar & Tebak Kata', '👂'],
-      ['Gambar & Kata', '🖼️'], ['Huruf Hilang', '🕵️'], ['Susun Kata', '🧩']
+      ['Gambar & Kata', '🖼️'], ['Susun Huruf Kata', '🧩'], ['Balon Kata', '🎈'],
+      ['Huruf Hilang', '🕵️'], ['Kartu Pasangan Kata', '🃏'], ['Pasangkan Kata', '🔗']
     ] },
     { cat: '📖 Belajar Baca — Suku Kata', emoji: '🧩', items: [
-      ['Gambar & Kata', '🖼️'], ['Dengar & Tebak Kata', '👂'], ['Dengar & Pilih Kata', '🗣️'],
-      ['Suku Kata Hilang', '🕵️'], ['Kartu Pasangan', '🃏'], ['Pasangkan Suku Kata', '🔗']
+      ['Gambar & Kata', '🖼️'], ['Susun Suku Kata', '🧩'], ['Balon Kata', '🎈'],
+      ['Suku Kata Hilang', '🕵️'], ['Kartu Pasangan Kata', '🃏'], ['Pasangkan Suku Kata', '🔗']
     ] },
     { cat: '🔢 Belajar Hitung — Angka', emoji: '🔢', items: [
       ['Kartu Pasangan', '🃏'], ['Dengar & Tebak Angka', '👂'], ['Pasangkan Angka', '🔗'],
@@ -25,7 +26,7 @@
     ] },
     { cat: '🔢 Belajar Hitung — Operasi', emoji: '➕', items: [
       ['Angka Hilang', '🕵️'], ['Susun Jawaban', '🧩'], ['Dengar & Hitung', '👂'],
-      ['Hitung Maju / Mundur', '🚀'], ['Soal Cerita', '📖'], ['Kuis Campuran', '🏆']
+      ['Tabel & Hitung Melompat', '📊'], ['Soal Cerita', '📖'], ['Kuis Campuran', '🏆']
     ] }
   ];
 

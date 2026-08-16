@@ -38,30 +38,33 @@
     WORDS[syl].forEach(([word, emoji]) => WORDS_FLAT.push({ word, emoji, syl }));
   });
 
+  /* 10 game per unit. Game inti belajar huruf (tebak, tracing, urutan) dan
+     belajar suku kata (tebak, sambung, urutan) diikutsertakan — sebelumnya
+     game-game ini tidak muncul di unit mana pun. 4 game pertama gratis. */
   const HURUF_GAMES = [
+    { id: 'tebak', type: 'tebak', title: 'Tebak Huruf', emoji: '👂', desc: 'Dengar nama hurufnya, lalu pilih huruf yang benar.' },
+    { id: 'tracing', type: 'tracing', title: 'Tulis Huruf', emoji: '✏️', desc: 'Ikuti garis putus-putus untuk menulis hurufnya.' },
+    { id: 'urutan', type: 'urutan', title: 'Urutan Huruf', emoji: '➡️', desc: 'Huruf mana yang hilang dari urutannya?' },
     { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
     { id: 'susun', type: 'susun', title: 'Susun Huruf Kata', emoji: '🧩', desc: 'Susun huruf-hurufnya jadi kata yang benar.' },
     { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' },
-    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' },
     { id: 'hilang', type: 'hilang', title: 'Huruf Hilang dari Kata', emoji: '🕵️', desc: 'Huruf mana yang hilang dari kata ini?' },
     { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
-    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
-    { id: 'kuis-mix', type: 'kuis', mode: 'sound2word', title: 'Kuis Sulit: Dengar Kata', emoji: '🏆', desc: 'Pilih tulisan kata yang benar dari pilihan yang mirip.' },
-    { id: 'susun-cepat', type: 'susun', title: 'Susun Cepat', emoji: '⚡', desc: 'Susun huruf-hurufnya dengan cepat.' }
+    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' }
   ];
 
   const SUKU_GAMES = [
+    { id: 'tebak', type: 'tebak', title: 'Tebak Suku Kata', emoji: '👂', desc: 'Dengar suku katanya, lalu pilih yang benar.' },
+    { id: 'sambung', type: 'sambung', title: 'Sambung Suku Kata', emoji: '🔗', desc: 'Tarik garis dari huruf ke vokal jadi suku kata.' },
+    { id: 'urutan', type: 'urutan', title: 'Urutan Suku Kata', emoji: '➡️', desc: 'Suku kata mana yang hilang dari urutannya?' },
     { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
     { id: 'susun', type: 'susun', title: 'Susun Suku Kata', emoji: '🧩', desc: 'Susun suku kata jadi kata yang benar.' },
     { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' },
-    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih Kata', emoji: '🗣️', desc: 'Dengar kata, pilih tulisan yang benar.' },
     { id: 'hilang', type: 'hilang', title: 'Suku Kata Hilang', emoji: '🕵️', desc: 'Suku kata mana yang hilang dari kata ini?' },
     { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
-    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
-    { id: 'kuis-mix', type: 'kuis', mode: 'sound2word', title: 'Kuis Sulit: Dengar Kata', emoji: '🏆', desc: 'Pilih tulisan kata yang benar dari pilihan yang mirip.' },
-    { id: 'susun-cepat', type: 'susun', title: 'Susun Cepat', emoji: '⚡', desc: 'Susun suku kata dengan cepat.' }
+    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' }
   ];
 
   const SYL_GROUPS = [
@@ -346,6 +349,7 @@
   /* ==================== HOME ==================== */
 
   let homeTab = 'baca'; // 'baca' | 'hitung'
+  let currentUnitId = null; // unit yang sedang dibuka (dipakai tombol ⏹️ kembali)
 
   function goHome() { renderHome(); UI.showScreen('home'); }
 
@@ -400,6 +404,7 @@
   function openUnit(unitId) {
     const unit = UNITS.concat(MATH_UNITS).find(u => u.id === unitId);
     if (!unit) return;
+    currentUnitId = unit.id;
     $('#unit-title').textContent = unit.title + (unit.kelas ? ' • ' + unit.kelas : '');
 
     const isPro = !!(profile() && profile().isPro);
@@ -537,7 +542,11 @@
         });
         break;
       case 'urutan':
-        GameUrutan.start({ letters: unit.letters, letterCase: unit.letterCase, ...common });
+        GameUrutan.start({
+          letters: unit.kind === 'suku' ? unit.syllables : unit.letters,
+          letterCase: unit.letterCase,
+          ...common
+        });
         break;
       case 'balon':
         const pool = unit.kind === 'suku' 
