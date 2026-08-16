@@ -135,7 +135,10 @@
   <!-- ===== Layar: Game ===== -->
   <section class="screen" id="screen-game">
     <header class="topbar sub">
-      <button class="back-btn" id="btn-back-unit" aria-label="Berhenti">⏹️</button>
+      <div style="display:flex; gap: 6px;">
+        <button class="back-btn" id="btn-back-unit" aria-label="Berhenti" style="margin:0;">⏹️</button>
+        <button class="back-btn" id="btn-back-home-game" aria-label="Beranda" style="margin:0;">🏠</button>
+      </div>
       <h2 id="game-title">Tebak Huruf</h2>
       <div style="display:flex; align-items:center; gap: 8px;">
         <button class="icon-btn" id="btn-repeat-audio" aria-label="Ulangi Suara" style="width:36px; height:36px; font-size:1.1rem; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05); color:#6b4c3a; border: 2px solid #f0dcc0; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;">🔁</button>

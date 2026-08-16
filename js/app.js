@@ -886,13 +886,27 @@
        'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
         const g = window[name];
         if (g && g.cancel) {
-          // If games returned progress on cancel we could save it, 
-          // for now just trigger their cleanup logic.
           g.cancel(); 
         }
       });
       AudioSys.sfx.tap();
       openUnit(currentUnitId); // go back to unit, not home
+    });
+
+    $('#btn-back-home-game').addEventListener('click', () => {
+      if (!confirm('Apakah kamu yakin ingin berhenti bermain dan kembali ke Beranda?')) return;
+      AudioSys.stopAudio();
+      $('#game-overlay').classList.add('hidden');
+      $('#game-start-overlay').classList.add('hidden');
+      ['GameTebak', 'GameTracing', 'GameSambung', 'GamePasangan', 'GameMemory',
+       'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
+        const g = window[name];
+        if (g && g.cancel) {
+          g.cancel(); 
+        }
+      });
+      AudioSys.sfx.tap();
+      goHome(); // go directly home
     });
 
     $('#btn-repeat-audio').addEventListener('click', () => {
