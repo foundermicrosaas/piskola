@@ -425,25 +425,48 @@
       $('#el-speed-label').textContent = Number(e.target.value).toFixed(2);
     });
 
-    $('#btn-el-save').addEventListener('click', () => {
+    $('#btn-el-save').addEventListener('click', async () => {
       const el = Store.getElevenLabs();
       const female = $('#el-female-voice').value.trim();
       const male = $('#el-male-voice').value.trim();
       const serverTts = $('#el-server-tts').checked;
+      const serverUrl = $('#el-server-url').value.trim() || '/tts';
+      const serverToken = $('#el-server-token').value.trim();
+      const speed = Number($('#el-speed').value) || 0.75;
       Store.setElevenLabs({
         apiKey: $('#el-api-key').value.trim(),
         femaleVoiceId: female,
         maleVoiceId: male,
         voiceId: female || male || el.voiceId || '', // kompatibilitas lama
-        speed: Number($('#el-speed').value) || 0.75,
+        speed,
         serverTts,
-        serverUrl: $('#el-server-url').value.trim() || '/tts',
-        serverToken: $('#el-server-token').value.trim()
+        serverUrl,
+        serverToken
       });
       renderVoice();
-      $('#el-status').textContent = serverTts
-        ? '✅ Tersimpan — mode SERVER aktif. Pastikan server proxy TTS berjalan (lihat DEPLOY.md) dan API key terisi di server.'
-        : '✅ Tersimpan. Tutor perempuan & laki-laki memakai suara masing-masing.';
+
+      // Kirim voice config ke server agar SEMUA perangkat user otomatis mendapatkannya
+      // (localStorage hanya tersimpan di perangkat ini — server menjadi sumber kebenaran)
+      const configPayload = { femaleVoiceId: female, maleVoiceId: male, speed };
+      const configUrl = new URL(serverUrl, location.href);
+      if (!/\/tts$/i.test(configUrl.pathname)) configUrl.pathname = configUrl.pathname.replace(/\/+$/, '') + '/tts';
+      configUrl.pathname = configUrl.pathname.replace(/\/tts$/i, '/config');
+      const headers = { 'Content-Type': 'application/json' };
+      if (serverToken) headers['x-tts-token'] = serverToken;
+      try {
+        const r = await fetch(configUrl.toString(), { method: 'POST', headers, body: JSON.stringify(configPayload) });
+        if (r.ok) {
+          $('#el-status').textContent = serverTts
+            ? '✅ Tersimpan & dikirim ke server. Semua perangkat user akan otomatis memakai suara ini.'
+            : '✅ Tersimpan & dikirim ke server. Tutor perempuan & laki-laki memakai suara masing-masing.';
+        } else {
+          $('#el-status').textContent = '✅ Tersimpan di perangkat ini. ⚠️ Gagal kirim ke server (' + r.status + ') — user di perangkat lain perlu buka admin untuk sinkronisasi.';
+        }
+      } catch (e) {
+        $('#el-status').textContent = serverTts
+          ? '✅ Tersimpan — mode SERVER aktif. Pastikan server proxy TTS berjalan (lihat DEPLOY.md) dan API key terisi di server.'
+          : '✅ Tersimpan. Tutor perempuan & laki-laki memakai suara masing-masing.';
+      }
     });
 
     $('#btn-el-test').addEventListener('click', async () => {

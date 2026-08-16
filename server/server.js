@@ -89,6 +89,17 @@ async function ttsFile(text, voice, speed, log) {
   return { ok: true, file, cached: false };
 }
 
+/* ---------- Config file (voice ID tersimpan di server, bukan hanya localStorage) ---------- */
+const CONFIG_FILE = path.join(__dirname, 'app-config.json');
+
+function readAppConfig() {
+  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
+  catch (e) { return {}; }
+}
+function writeAppConfig(cfg) {
+  try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2)); } catch (e) { /* abaikan */ }
+}
+
 /* ---------- Pembatasan & keamanan ---------- */
 const rateMap = new Map();
 function allowed(ip) {
@@ -102,17 +113,60 @@ function allowed(ip) {
 function authorized(req) {
   if (!TOKEN) return true;
   const u = new URL(req.url, 'http://x');
-  return u.searchParams.get('token') === TOKEN;
+  const hdr = req.headers['x-tts-token'] || '';
+  return u.searchParams.get('token') === TOKEN || hdr === TOKEN;
 }
 
 /* ---------- Server ---------- */
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-tts-token');
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
-  if (req.method !== 'GET') { res.writeHead(405); res.end('method tidak diizinkan'); return; }
 
   const ip = req.socket.remoteAddress || '?';
+
+  /* GET /config — kembalikan konfigurasi voice (publik, aman — tidak ada API key) */
+  const u0 = new URL(req.url, 'http://x');
+  if (req.method === 'GET' && u0.pathname === '/config') {
+    const cfg = readAppConfig();
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+    res.end(JSON.stringify({
+      femaleVoiceId: cfg.femaleVoiceId || ENV.FEMALE_VOICE_ID || '',
+      maleVoiceId:   cfg.maleVoiceId   || ENV.MALE_VOICE_ID   || '',
+      speed:         cfg.speed         || 0.75,
+      serverTts:     true  // jika server berjalan, mode server selalu aktif
+    }));
+    return;
+  }
+
+  /* POST /config — simpan konfigurasi voice dari Admin (harus pakai token) */
+  if (req.method === 'POST' && u0.pathname === '/config') {
+    if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
+    let body = '';
+    req.on('data', d => { body += d; if (body.length > 2048) req.destroy(); });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        const current = readAppConfig();
+        const updated = Object.assign(current, {
+          femaleVoiceId: (data.femaleVoiceId || '').trim(),
+          maleVoiceId:   (data.maleVoiceId   || '').trim(),
+          speed:         Number(data.speed)   || 0.75
+        });
+        writeAppConfig(updated);
+        console.log('[Config] disimpan:', JSON.stringify(updated));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (e) {
+        res.writeHead(400); res.end('JSON tidak valid');
+      }
+    });
+    return;
+  }
+
+  if (req.method !== 'GET') { res.writeHead(405); res.end('method tidak diizinkan'); return; }
+
   if (!allowed(ip)) { res.writeHead(429); res.end('terlalu banyak permintaan — coba sebentar lagi'); return; }
   if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
 

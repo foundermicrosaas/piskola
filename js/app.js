@@ -922,6 +922,35 @@
 
   /* ==================== INIT ==================== */
 
+  /* Ambil konfigurasi voice dari server (jika tersedia) dan simpan ke localStorage.
+     Ini memastikan semua perangkat user mendapat voice ID yang benar tanpa perlu
+     konfigurasi manual per perangkat. Dipanggil diam-diam saat startup. */
+  async function fetchServerConfig() {
+    try {
+      // Cari serverUrl dari localStorage — bisa sudah diisi dari perangkat lain atau belum
+      const el = Store.getElevenLabs();
+      // Coba endpoint /config relatif (selalu ada jika server berjalan di domain yang sama)
+      const configUrl = new URL('/config', location.href);
+      const res = await fetch(configUrl, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return;
+      const cfg = await res.json();
+      if (!cfg || (!cfg.femaleVoiceId && !cfg.maleVoiceId)) return;
+      // Gabungkan dengan config yang sudah ada (tidak timpa apiKey lokal)
+      const current = Store.getElevenLabs();
+      Store.setElevenLabs(Object.assign({}, current, {
+        femaleVoiceId: cfg.femaleVoiceId || current.femaleVoiceId || '',
+        maleVoiceId:   cfg.maleVoiceId   || current.maleVoiceId   || '',
+        voiceId:       cfg.femaleVoiceId || cfg.maleVoiceId || current.voiceId || '',
+        speed:         cfg.speed         || current.speed   || 0.75,
+        serverTts:     cfg.serverTts !== undefined ? cfg.serverTts : (current.serverTts || false),
+        serverUrl:     current.serverUrl || '/tts',
+        serverToken:   current.serverToken || '',
+        apiKey:        current.apiKey || ''
+      }));
+      AudioSys.refreshConfig(); // beritahu AudioSys agar pakai config terbaru
+    } catch (e) { /* server tidak tersedia atau belum dikonfigurasi — abaikan */ }
+  }
+
   function init() {
     AudioSys.setMuted(Store.getSettings().muted === true);
     updateMuteIcon();
@@ -929,6 +958,9 @@
     wireSettings();
     wireNav();
     wireInstall();
+
+    // Ambil config voice dari server secara diam-diam (tidak blokir UI)
+    fetchServerConfig();
 
     if (Store.getProfile()) {
       setTimeout(() => {

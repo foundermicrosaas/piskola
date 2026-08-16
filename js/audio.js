@@ -650,7 +650,9 @@ window.AudioSys = (() => {
   };
 
   return {
-    setMuted, isMuted, speak, speakItem, speakLetter, testVoice, refreshEl, prewarm, angkaKeKata,
+    setMuted, isMuted, speak, speakItem, speakLetter, testVoice,
+    refreshConfig: refreshEl, // dipanggil app.js setelah fetch config dari server
+    prewarm, angkaKeKata,
     setSubject,
     praiseCorrect, praiseStreak, praiseGame, praiseUnit, encourage, greet, greetText, gameWelcome,
     sfx
