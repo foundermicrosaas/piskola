@@ -25,6 +25,13 @@ window.GameMemory = (() => {
         return { a: sy, b: emoji, bEmoji: true };
       });
     }
+    if (params.mode === 'letter2pic') {
+      // pasangan: huruf ↔ gambar kata yang diawali huruf itu
+      return params.letters.slice(0, 8).map(ch => {
+        const w = (params.pool || []).find(x => x.word[0] === ch.toLowerCase());
+        return { a: ch.toUpperCase(), b: w ? w.emoji : '🔤', bEmoji: true };
+      });
+    }
     if (params.mode === 'kata') {
       return params.pool.slice(0, 8).map(w => {
         return { a: w.word, b: w.emoji, bEmoji: true };
@@ -102,7 +109,6 @@ window.GameMemory = (() => {
           b2.classList.add('matched');
           open = [];
           AudioSys.sfx.correct();
-          AudioSys.praiseCorrect(params.profile);
           later(() => {
             locked = false;
             if (matchedCount === pairs.length) finish();

@@ -13,12 +13,12 @@
      daftar game asli di app.js (4 game pertama gratis, sisanya PRO). */
   const PRO_GAMES = [
     { cat: '📖 Belajar Baca — Huruf', emoji: '🔠', items: [
-      ['Gambar & Kata', '🖼️'], ['Susun Huruf Kata', '🧩'], ['Balon Kata', '🎈'],
-      ['Huruf Hilang', '🕵️'], ['Kartu Pasangan Kata', '🃏'], ['Pasangkan Kata', '🔗']
+      ['Huruf Hilang', '🕵️'], ['Kartu Pasangan Kata', '🃏'], ['Pasangkan Kata', '🔗'],
+      ['Kartu Pasangan Huruf & Gambar', '🃏'], ['Pasangkan Huruf & Gambar', '🔗'], ['Balon Kata', '🎈']
     ] },
     { cat: '📖 Belajar Baca — Suku Kata', emoji: '🧩', items: [
-      ['Gambar & Kata', '🖼️'], ['Susun Suku Kata', '🧩'], ['Balon Kata', '🎈'],
-      ['Suku Kata Hilang', '🕵️'], ['Kartu Pasangan Kata', '🃏'], ['Pasangkan Suku Kata', '🔗']
+      ['Balon Suku Kata', '🎈'], ['Suku Kata Hilang', '🕵️'], ['Kartu Pasangan Kata', '🃏'],
+      ['Pasangkan Suku Kata', '🔗'], ['Kartu Pasangan Suku Kata', '🃏'], ['Pasangkan Suku Kata & Gambar', '🔗']
     ] },
     { cat: '🔢 Belajar Hitung — Angka', emoji: '🔢', items: [
       ['Kartu Pasangan', '🃏'], ['Dengar & Tebak Angka', '👂'], ['Pasangkan Angka', '🔗'],

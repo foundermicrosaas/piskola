@@ -66,6 +66,17 @@ window.Store = (() => {
   }
 
   /* ---- Sinkronisasi Cloud (VPS) ---- */
+
+  /* Baca respons server dengan AMAN: kalau server membalas HTML (mis. halaman
+     404/502 dari nginx) alih-alih JSON, tampilkan pesan yang jelas — bukan
+     error mentah "Unexpected token '<' ... is not valid JSON". */
+  async function readJson(res) {
+    const text = await res.text().catch(() => '');
+    try { return JSON.parse(text); } catch (e) {
+      throw new Error('Server belum merespons dengan benar (HTTP ' + res.status + '). Pastikan server API aktif, lalu coba lagi.');
+    }
+  }
+
   const CloudSync = {
     async register(userData) {
       try {
@@ -75,11 +86,14 @@ window.Store = (() => {
           body: JSON.stringify(userData)
         });
         if (!res.ok) {
-          const err = await res.json();
+          const err = await readJson(res);
           throw new Error(err.error || 'Gagal mendaftar');
         }
-        return await res.json();
-      } catch (e) { throw e; }
+        return await readJson(res);
+      } catch (e) {
+        if (e instanceof SyntaxError) throw new Error('Server belum siap (HTTP ' + (e.status || '?') + '). Hubungi admin, atau coba lagi nanti.');
+        throw e;
+      }
     },
     async login(username, pin) {
       try {
@@ -89,11 +103,24 @@ window.Store = (() => {
           body: JSON.stringify({username, pin})
         });
         if (!res.ok) {
-          const err = await res.json();
+          const err = await readJson(res);
           throw new Error(err.error || 'Login gagal');
         }
-        return await res.json();
-      } catch (e) { throw e; }
+        return await readJson(res);
+      } catch (e) {
+        if (e instanceof SyntaxError) throw new Error('Server belum siap (HTTP ' + (e.status || '?') + '). Hubungi admin, atau coba lagi nanti.');
+        throw e;
+      }
+    },
+    /* Cek ketersediaan username langsung ke database server (untuk form
+       daftar): kembalikan { available: true/false }. Gagal jaringan → lempar
+       error agar UI bisa bersikap netral (tidak memblokir pendaftaran). */
+    async checkUsername(username) {
+      const res = await fetch('/api/check-username?username=' + encodeURIComponent(username.trim().toLowerCase()), {
+        headers: { 'x-tts-token': getStoredAdminToken() }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await readJson(res);
     },
     async syncProgress(uid, userObj) {
       try {

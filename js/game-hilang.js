@@ -104,7 +104,6 @@ window.GameHilang = (() => {
             area.querySelector('.quiz-word.missing').textContent = fill;
             area.querySelector('.quiz-word.missing').classList.remove('missing');
             AudioSys.sfx.correct();
-            AudioSys.praiseCorrect(params.profile);
             later(() => {
               round++;
               if (round >= ROUNDS) finish();

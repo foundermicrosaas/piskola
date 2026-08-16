@@ -38,33 +38,38 @@
     WORDS[syl].forEach(([word, emoji]) => WORDS_FLAT.push({ word, emoji, syl }));
   });
 
-  /* 10 game per unit. Game inti belajar huruf (tebak, tracing, urutan) dan
-     belajar suku kata (tebak, sambung, urutan) diikutsertakan — sebelumnya
-     game-game ini tidak muncul di unit mana pun. 4 game pertama gratis. */
+  /* 10 game per unit huruf. Tebak Huruf, Tulis Huruf (tracing), Urutan Huruf,
+     dan Dengar Kata & Pilih Gambar dihilangkan — diganti game yang lebih
+     interaktif: Cari Huruf (memburu huruf di kotak ajaib), Kartu Pasangan &
+     Pasangkan Huruf & Gambar, dan Balon Huruf. 4 game pertama gratis. */
   const HURUF_GAMES = [
-    { id: 'tebak', type: 'tebak', title: 'Tebak Huruf', emoji: '👂', desc: 'Dengar nama hurufnya, lalu pilih huruf yang benar.' },
-    { id: 'tracing', type: 'tracing', title: 'Tulis Huruf', emoji: '✏️', desc: 'Ikuti garis putus-putus untuk menulis hurufnya.' },
-    { id: 'urutan', type: 'urutan', title: 'Urutan Huruf', emoji: '➡️', desc: 'Huruf mana yang hilang dari urutannya?' },
-    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
     { id: 'susun', type: 'susun', title: 'Susun Huruf Kata', emoji: '🧩', desc: 'Susun huruf-hurufnya jadi kata yang benar.' },
-    { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' },
+    { id: 'balon-huruf', type: 'balon', mode: 'huruf', title: 'Balon Huruf', emoji: '🎈', desc: 'Dengar hurufnya, lalu pecahkan balon yang benar.' },
+    { id: 'cari', type: 'cari', title: 'Cari Huruf', emoji: '🔍', desc: 'Temukan semua huruf yang diminta di kotak ajaib.' },
     { id: 'hilang', type: 'hilang', title: 'Huruf Hilang dari Kata', emoji: '🕵️', desc: 'Huruf mana yang hilang dari kata ini?' },
     { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
-    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' }
+    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
+    { id: 'memory-letter2pic', type: 'memory', mode: 'letter2pic', title: 'Kartu Pasangan Huruf & Gambar', emoji: '🃏', desc: 'Cocokkan huruf dengan gambar katanya.' },
+    { id: 'pasangan-letter2pic', type: 'pasangan', mode: 'letter2pic', title: 'Pasangkan Huruf & Gambar', emoji: '🔗', desc: 'Hubungkan huruf dengan gambar katanya.' },
+    { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' }
   ];
 
+  /* 10 game per unit suku kata. Tebak Suku Kata, Urutan Suku Kata, dan
+     Dengar Kata & Pilih Gambar dihilangkan — diganti yang lebih interaktif:
+     Cari Suku Kata, Balon Suku Kata, dan Kartu Pasangan / Pasangkan Suku
+     Kata & Gambar. 4 game pertama gratis. */
   const SUKU_GAMES = [
-    { id: 'tebak', type: 'tebak', title: 'Tebak Suku Kata', emoji: '👂', desc: 'Dengar suku katanya, lalu pilih yang benar.' },
     { id: 'sambung', type: 'sambung', title: 'Sambung Suku Kata', emoji: '🔗', desc: 'Tarik garis dari huruf ke vokal jadi suku kata.' },
-    { id: 'urutan', type: 'urutan', title: 'Urutan Suku Kata', emoji: '➡️', desc: 'Suku kata mana yang hilang dari urutannya?' },
-    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Dengar Kata & Pilih Gambar', emoji: '👂', desc: 'Dengar kata, lalu pilih gambarnya.' },
     { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
     { id: 'susun', type: 'susun', title: 'Susun Suku Kata', emoji: '🧩', desc: 'Susun suku kata jadi kata yang benar.' },
-    { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' },
+    { id: 'cari', type: 'cari', title: 'Cari Suku Kata', emoji: '🔍', desc: 'Temukan semua suku kata yang diminta.' },
+    { id: 'balon-suku', type: 'balon', mode: 'suku', title: 'Balon Suku Kata', emoji: '🎈', desc: 'Dengar suku katanya, lalu pecahkan balon yang benar.' },
     { id: 'hilang', type: 'hilang', title: 'Suku Kata Hilang', emoji: '🕵️', desc: 'Suku kata mana yang hilang dari kata ini?' },
     { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
-    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' }
+    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
+    { id: 'memory-suku', type: 'memory', mode: 'suku', title: 'Kartu Pasangan Suku Kata', emoji: '🃏', desc: 'Cocokkan suku kata dengan gambar katanya.' },
+    { id: 'pasangan-suku', type: 'pasangan', mode: 'suku', title: 'Pasangkan Suku Kata & Gambar', emoji: '🔗', desc: 'Hubungkan suku kata dengan gambar katanya.' }
   ];
 
   const SYL_GROUPS = [
@@ -196,6 +201,13 @@
     'tebak-huruf': 'Yuk kita belajar menebak huruf',
     'tebak-suku': 'Yuk kita belajar suku kata',
     tracing: 'Yuk kita belajar bentuk huruf',
+    cari: 'Yuk kita cari hurufnya di kotak ajaib',
+    'balon-huruf': 'Yuk kita pecahkan balon hurufnya',
+    'balon-suku': 'Yuk kita pecahkan balon suku katanya',
+    'memory-letter2pic': 'Yuk kita cocokkan huruf dengan gambarnya',
+    'pasangan-letter2pic': 'Yuk kita pasangkan huruf dengan gambarnya',
+    'memory-suku': 'Yuk kita cari pasangan suku katanya',
+    'pasangan-suku': 'Yuk kita pasangkan suku kata dengan gambarnya',
     sambung: 'Yuk kita sambungkan huruf jadi suku kata',
     pasangan: 'Yuk kita pasangkan yang cocok',
     memory: 'Yuk kita cari pasangan kartunya',
@@ -238,6 +250,9 @@
 
   let loginSel = null;
   let regDraft = { panggilan: null, avatar: null };
+  /* Hasil cek ketersediaan username ke server:
+     true=tersedia, false=terpakai, null=belum dicek/server tak terjangkau */
+  let regUsernameOk = null;
 
   function goLogin() {
     renderLogin();
@@ -276,10 +291,14 @@
 
   function goRegister() {
     regDraft = { panggilan: null, avatar: null };
+    regUsernameOk = null;
+    $('#reg-username').value = '';
     $('#reg-name').value = '';
     $('#reg-pin').value = '';
     $('#reg-pin2').value = '';
     $('#reg-error').textContent = '';
+    const st = $('#reg-username-status');
+    if (st) { st.textContent = ''; st.className = 'username-status'; }
     $$('[data-reg-pg]').forEach(b => b.classList.remove('selected'));
     $$('[data-reg-av]').forEach(b => b.classList.remove('selected'));
     UI.showScreen('register');
@@ -292,6 +311,7 @@
     const pin = $('#reg-pin').value.trim();
     const pin2 = $('#reg-pin2').value.trim();
     if (!username) { $('#reg-error').textContent = 'Isi Username unik dulu ya!'; return; }
+    if (regUsernameOk === false) { $('#reg-error').textContent = 'Username sudah dipakai. Pilih yang lain ya!'; return; }
     if (!nama) { $('#reg-error').textContent = 'Tulis nama panggilan anak!'; return; }
     if (!regDraft.panggilan) { $('#reg-error').textContent = 'Pilih panggilan (Kakak/Adek).'; return; }
     if (!regDraft.avatar) { $('#reg-error').textContent = 'Pilih avatar kesukaanmu.'; return; }
@@ -331,6 +351,37 @@
     $('#btn-register').addEventListener('click', doRegister);
     $('#btn-register-back').addEventListener('click', () => { AudioSys.sfx.tap(); goLogin(); });
     $('#reg-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#reg-pin').focus(); });
+
+    /* Cek ketersediaan username langsung ke database server (debounce),
+       dengan indikator di bawah kolom: ✅ tersedia / ❌ sudah dipakai. */
+    let usernameCheckTimer = null;
+    $('#reg-username').addEventListener('input', () => {
+      clearTimeout(usernameCheckTimer);
+      const u = $('#reg-username').value.trim();
+      const st = $('#reg-username-status');
+      if (!u) {
+        regUsernameOk = null;
+        if (st) { st.textContent = ''; st.className = 'username-status'; }
+        return;
+      }
+      if (st) { st.textContent = '⏳ Mengecek ketersediaan...'; st.className = 'username-status'; }
+      usernameCheckTimer = setTimeout(async () => {
+        try {
+          const r = await Store.CloudSync.checkUsername(u);
+          if (r && r.available === false) {
+            regUsernameOk = false;
+            if (st) { st.textContent = '❌ Username sudah dipakai. Pilih yang lain ya!'; st.className = 'username-status bad'; }
+          } else {
+            regUsernameOk = true;
+            if (st) { st.textContent = '✅ Username tersedia!'; st.className = 'username-status ok'; }
+          }
+        } catch (e) {
+          // Server tak terjangkau → jangan blokir; biarkan /api/register yang menegaskan
+          regUsernameOk = null;
+          if (st) { st.textContent = ''; st.className = 'username-status'; }
+        }
+      }, 450);
+    });
 
     $$('[data-reg-pg]').forEach(b => b.addEventListener('click', () => {
       $$('[data-reg-pg]').forEach(x => x.classList.remove('selected'));
@@ -509,6 +560,13 @@
     switch (game.type) {
       case 'tebak':
         GameTebak.start({
+          items: unit.kind === 'huruf' ? unit.letters : unit.syllables,
+          display: unit.kind === 'huruf' ? unit.letterCase : 'raw',
+          ...common
+        });
+        break;
+      case 'cari':
+        GameCari.start({
           items: unit.kind === 'huruf' ? unit.letters : unit.syllables,
           display: unit.kind === 'huruf' ? unit.letterCase : 'raw',
           ...common

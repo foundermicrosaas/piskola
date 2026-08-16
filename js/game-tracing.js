@@ -258,7 +258,6 @@ window.GameTracing = (() => {
           if (resetBtn) resetBtn.hidden = true;
           const hint = document.getElementById('trace-hint');
           if (hint) hint.textContent = 'Hebat! Huruf ' + letter + ' selesai! 🎉';
-          AudioSys.praiseCorrect(profile);
         }
       });
 

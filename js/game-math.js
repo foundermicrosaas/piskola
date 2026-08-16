@@ -162,7 +162,6 @@ window.GameMath = (() => {
         correct++;
         btn.classList.add('correct', 'done');
         AudioSys.sfx.correct();
-        AudioSys.praiseCorrect(params.profile);
         const rect = btn.getBoundingClientRect();
         Confetti.burst(14, { x: rect.left + rect.width / 2, y: rect.top + 10 });
         later(() => {
@@ -289,7 +288,6 @@ window.GameMath = (() => {
             correct++;
             b.classList.add('pop', 'done');
             AudioSys.sfx.correct();
-            AudioSys.praiseCorrect(params.profile);
             const rect = b.getBoundingClientRect();
             Confetti.burst(14, { x: rect.left + rect.width / 2, y: rect.top + 20 });
             later(() => {
@@ -350,7 +348,6 @@ window.GameMath = (() => {
             b1.classList.add('matched'); b2.classList.add('matched');
             open = [];
             AudioSys.sfx.correct();
-            AudioSys.praiseCorrect(params.profile);
             later(() => {
               locked = false;
               if (matched === pairs.length) finish();
@@ -415,7 +412,6 @@ window.GameMath = (() => {
           picked = null;
           matched++;
           AudioSys.sfx.correct();
-          AudioSys.praiseCorrect(params.profile);
           if (matched === pairs.length) finish();
         } else {
           b.classList.add('wrong');
@@ -489,7 +485,6 @@ window.GameMath = (() => {
               correct++;
               area.querySelectorAll('.build-slot').forEach(s => s.classList.add('ok'));
               AudioSys.sfx.correct();
-              AudioSys.praiseCorrect(params.profile);
               later(() => {
                 round++;
                 if (round >= ROUNDS) finish();

@@ -74,7 +74,6 @@ window.GameBalon = (() => {
             correct++;
             b.classList.add('pop', 'done');
             AudioSys.sfx.correct();
-            AudioSys.praiseCorrect(params.profile);
             const rect = b.getBoundingClientRect();
             Confetti.burst(16, { x: rect.left + rect.width / 2, y: rect.top + 20 });
             later(() => {

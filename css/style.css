@@ -629,11 +629,15 @@ a.back-btn { display: inline-flex; align-items: center; justify-content: center;
 .login-error { color: #d64545; font-weight: 700; margin: 0; min-height: 1.2em; }
 .reg-block { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-top: 6px; }
 .reg-label { margin: 0; font-weight: 700; color: #8a7a99; font-size: 0.95rem; }
-#reg-name {
+#reg-name, #reg-username {
   font-family: inherit; font-size: 1.5rem; font-weight: 700; text-align: center;
   width: 100%; max-width: 300px; padding: 16px 20px;
   border: 4px solid var(--sun); border-radius: 22px; outline: none; background: var(--card); color: var(--ink);
 }
+#reg-name:focus, #reg-username:focus { border-color: var(--orange); }
+.username-status { font-size: 0.9rem; font-weight: 700; margin: -8px 0 0; min-height: 1.2em; color: #8a7a99; }
+.username-status.ok { color: var(--teal); }
+.username-status.bad { color: #d64545; }
 .pin-pair { display: flex; gap: 10px; }
 .pin-pair input {
   width: 120px; font-family: inherit; font-size: 1.4rem; letter-spacing: 6px; text-align: center;
@@ -666,6 +670,29 @@ a.back-btn { display: inline-flex; align-items: center; justify-content: center;
 .choice-btn.correct { animation: popCorrect 0.45s ease; }
 .choice-btn.wrong { animation: shake 0.45s ease; }
 .choice-btn.done { pointer-events: none; }
+
+/* ---------- Game: Cari Huruf / Cari Suku Kata ---------- */
+.cari-counter { margin: 4px 0 0; font-weight: 800; color: var(--orange); font-size: 1.05rem; }
+.cari-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  background: var(--card); border-radius: var(--radius); padding: 14px;
+  box-shadow: var(--shadow);
+}
+.cari-tile {
+  aspect-ratio: 1; border: none; border-radius: 14px;
+  background: linear-gradient(180deg, #e7f7ff, #cdeefb);
+  cursor: pointer; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.08s;
+}
+.cari-tile:active { transform: scale(0.92); }
+.cari-cell { font-size: 1.6rem; font-weight: 800; color: var(--ink); }
+.cari-tile.found {
+  background: linear-gradient(180deg, var(--green), #4fd67c);
+  animation: popCorrect 0.4s ease;
+  pointer-events: none;
+}
+.cari-tile.found .cari-cell { color: #fff; }
+.cari-tile.wrong { animation: shake 0.4s ease; background: #ffc9c9; }
 
 /* ---------- Game: Urutan Huruf ---------- */
 .seq-row { display: flex; gap: 10px; justify-content: center; margin: 12px 0 6px; }

@@ -100,7 +100,6 @@ window.GameKuis = (() => {
             correct++;
             btn.classList.add('correct', 'done');
             AudioSys.sfx.correct();
-            AudioSys.praiseCorrect(params.profile);
             const rect = btn.getBoundingClientRect();
             Confetti.burst(14, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
             later(() => {

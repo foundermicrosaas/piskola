@@ -25,6 +25,13 @@ window.GamePasangan = (() => {
         return { key: sy, keyLabel: sy, target: word, targetLabel: emoji, emoji: true };
       });
     }
+    if (params.mode === 'letter2pic') {
+      // pasangan: huruf ↔ gambar kata yang diawali huruf itu
+      return params.letters.slice(0, 6).map(ch => {
+        const w = (params.pool || []).find(x => x.word[0] === ch.toLowerCase());
+        return { key: ch.toUpperCase(), keyLabel: ch.toUpperCase(), target: '#' + ch, targetLabel: w ? w.emoji : '🔤', emoji: true };
+      });
+    }
     if (params.mode === 'kata') {
       return params.pool.slice(0, 6).map(w => {
         return { key: w.word, keyLabel: w.word, target: w.word, targetLabel: w.emoji, emoji: true };
@@ -67,7 +74,9 @@ window.GamePasangan = (() => {
     area.innerHTML =
       '<p class="match-hint">' + (params.mode === 'suku'
         ? 'Hubungkan suku kata dengan gambarnya! 👇'
-        : 'Hubungkan huruf besar dengan huruf kecilnya! 👇') + '</p>' +
+        : params.mode === 'letter2pic'
+          ? 'Hubungkan huruf dengan gambarnya! 👇'
+          : 'Hubungkan huruf besar dengan huruf kecilnya! 👇') + '</p>' +
       '<div class="match-grid">' +
         '<div class="match-col" id="match-left">' + keys.map(k =>
           '<button class="match-item key" data-k="' + k + '">' +
@@ -119,7 +128,6 @@ window.GamePasangan = (() => {
         clearSel();
         matched++;
         AudioSys.sfx.correct();
-        AudioSys.praiseCorrect(params.profile);
         const rect = btn.getBoundingClientRect();
         Confetti.burst(14, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
         if (matched === pairs.length) finish();

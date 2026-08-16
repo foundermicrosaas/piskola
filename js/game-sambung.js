@@ -164,8 +164,6 @@ window.GameSambung = (() => {
           x: btn.getBoundingClientRect().left + btn.offsetWidth / 2,
           y: btn.getBoundingClientRect().top + btn.offsetHeight / 2
         });
-        if (streak >= 3) AudioSys.praiseStreak(profile);
-        else AudioSys.praiseCorrect(profile);
         later(() => {
           round++;
           busy = false;

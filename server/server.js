@@ -202,6 +202,16 @@ const server = http.createServer(async (req, res) => {
   if (p.startsWith('/api/')) {
     const db = loadDb();
     
+    // GET /api/check-username?username=... — cek ketersediaan username
+    // (dipakai form daftar; publik & aman — tidak membocorkan data)
+    if (p === '/api/check-username' && req.method === 'GET') {
+      const name = (u.searchParams.get('username') || '').toLowerCase().trim();
+      const available = name.length > 0 && !db.users[name];
+      res.writeHead(200, {'Content-Type':'application/json'});
+      res.end(JSON.stringify({ available, username: name }));
+      return;
+    }
+    
     // POST /api/register
     if (p === '/api/register' && req.method === 'POST') {
       try {

@@ -75,7 +75,6 @@ window.GameUrutan = (() => {
             area.querySelector('.seq-slot.empty').classList.remove('empty');
             area.querySelectorAll('.choice-btn').forEach(b => b.classList.add('done'));
             AudioSys.sfx.correct();
-            AudioSys.praiseCorrect(params.profile);
             later(() => {
               round++;
               if (round >= ROUNDS) finish();

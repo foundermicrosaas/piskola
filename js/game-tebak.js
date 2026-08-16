@@ -77,8 +77,6 @@ window.GameTebak = (() => {
           x: tile.getBoundingClientRect().left + tile.offsetWidth / 2,
           y: tile.getBoundingClientRect().top + tile.offsetHeight / 2
         });
-        if (streak >= 3) AudioSys.praiseStreak(profile);
-        else AudioSys.praiseCorrect(profile);
         later(() => {
           round++;
           busy = false;

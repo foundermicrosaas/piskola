@@ -82,7 +82,6 @@ window.GameSusun = (() => {
           correctTaps++;
           AudioSys.sfx.correct();
           if (fillIdx === parts.length) {
-            AudioSys.praiseCorrect(params.profile);
             const rect = slots[slots.length - 1].getBoundingClientRect();
             Confetti.burst(14, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
             later(() => {
