@@ -981,3 +981,30 @@ button { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Utility Classes for Word Games ---------- */
+.long-word { font-size: 2.2rem !important; }
+.very-long-word { font-size: 1.6rem !important; }
+
+/* Cari Kata overrides */
+.cari-grid.word-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+}
+.cari-grid.word-grid .cari-tile {
+  padding: 8px 4px !important;
+}
+.cari-grid.word-grid .cari-cell {
+  font-size: 2.2rem !important;
+}
+.cari-grid.word-grid .cari-cell.long-word { font-size: 1.8rem !important; }
+.cari-grid.word-grid .cari-cell.very-long-word { font-size: 1.3rem !important; }
+
+/* Match Grid overrides for Words */
+.match-col .match-item.trace-font {
+  font-size: 2.5rem !important;
+}
+.match-col .match-item.trace-font.long-word {
+  font-size: 1.8rem !important;
+}
+

@@ -332,9 +332,13 @@
             const pr = Store.getProfiles().find(x => x.id === id);
             if (!pr) return;
             if (!pr.isPro && !confirm('Aktifkan PRO untuk ' + pr.nama + '? Semua game terbuka (4 game gratis pertama saja untuk akun lain).')) return;
-            Store.setPro(id, !pr.isPro); // ini akan sync ke server berkat saveAndSync
-            renderUsers();
-            renderAnalytics();
+            try {
+              btn.textContent = '⏳';
+              await Store.AdminSync.setPro(id, !pr.isPro);
+              await Store.AdminSync.fetchAllUsers();
+              renderUsers();
+              renderAnalytics();
+            } catch(e) { alert('Gagal mengupdate PRO'); btn.textContent = (pr.isPro ? '⭐' : '☆'); }
           } else if (act === 'edit') {
             editUser(id, row);
           } else if (act === 'del') {

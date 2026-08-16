@@ -19,16 +19,9 @@ window.GameBalon = (() => {
 
   const ROUNDS = 6;
 
-  function start(params) {
+  function start({ pool, profile, onDone }) {
     active = true;
     timers = [];
-    const items = params.items;
-    
-    const show = (it) => {
-      if (params.display === 'upper') return it.toUpperCase();
-      if (params.display === 'lower') return it.toLowerCase();
-      return it;
-    };
 
     let round = 0, correct = 0, attempts = 0, busy = false;
 
@@ -38,39 +31,41 @@ window.GameBalon = (() => {
     function renderRound() {
       if (!active) return;
       progressEl.textContent = (round + 1) + '/' + ROUNDS;
-      let target = items[(Math.random() * items.length) | 0];
+      let targetObj = pool[(Math.random() * pool.length) | 0];
       let prev = state && state.target;
       let guard = 0;
-      while (target === prev && guard++ < 8) target = items[(Math.random() * items.length) | 0];
-      state = { target };
+      while (targetObj.word === (prev && prev.word) && guard++ < 8) {
+        targetObj = pool[(Math.random() * pool.length) | 0];
+      }
+      state = { target: targetObj };
 
-      const choices = shuffle([target, ...shuffle(items.filter(i => i !== target)).slice(0, 4)]);
+      const others = shuffle(pool.filter(w => w.word !== targetObj.word)).slice(0, 4);
+      const choices = shuffle([targetObj, ...others]);
 
       area.innerHTML =
         '<p class="match-hint">Dengarkan, lalu pecahkan balon yang benar! 🎈</p>' +
         '<div class="balloon-stage" id="balloon-stage">' +
-          choices.map((it, i) =>
-            '<button class="balloon" data-it="' + it + '" style="left:' + (8 + i * 19) + '%;animation-delay:' + (i * 0.7) + 's">' +
+          choices.map((w, i) => {
+            const fontClass = w.word.length > 5 ? 'long-word' : w.word.length > 8 ? 'very-long-word' : '';
+            return '<button class="balloon" data-it="' + w.word + '" style="left:' + (8 + i * 19) + '%;animation-delay:' + (i * 0.7) + 's">' +
               '<span class="balloon-fill"></span>' +
-              '<span class="balloon-label">' + show(it) + '</span>' +
+              '<span class="balloon-label ' + fontClass + '">' + w.word + '</span>' +
               '<span class="balloon-string"></span>' +
-            '</button>'
-          ).join('') +
+            '</button>';
+          }).join('') +
         '</div>';
 
       busy = true;
-      // Tombol 🔁 memakai flush (inisiatif anak — boleh memotong suara).
-      const playPrompt = () => AudioSys.speakItem(target, { flush: true });
+      const playPrompt = () => AudioSys.speakItem(state.target.word, { flush: true });
       window.lastGamePrompt = playPrompt;
-      // Auto-play ronde berikutnya TANPA flush → pujian tidak dipotong.
-      later(() => AudioSys.speakItem(target), 400);
+      later(() => AudioSys.speakItem(state.target.word), 400);
       later(() => { busy = false; }, 900);
 
       area.querySelectorAll('.balloon').forEach(b => {
         b.addEventListener('click', () => {
           if (!active || busy || b.classList.contains('done')) return;
           attempts++;
-          if (b.dataset.it === state.target) {
+          if (b.dataset.it === state.target.word) {
             correct++;
             b.classList.add('pop', 'done');
             AudioSys.sfx.correct();

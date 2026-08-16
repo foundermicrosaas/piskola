@@ -272,11 +272,12 @@ const server = http.createServer(async (req, res) => {
         if (data.avatar) db.users[uid].avatar = data.avatar;
         if (data.tutorGender) db.users[uid].tutorGender = data.tutorGender;
         if (data.muslim !== undefined) db.users[uid].muslim = !!data.muslim;
-        if (data.isPro !== undefined) db.users[uid].isPro = !!data.isPro;
+        // isPro TIDAK BOLEH ditimpa oleh sync dari client (mencegah client me-reset status Pro dari admin)
         
         db.users[uid].lastActiveAt = Date.now();
         saveDb(db);
-        res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify({ok: true}));
+        // Kembalikan status isPro terbaru dari server agar client bisa update diri sendiri
+        res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify({ok: true, isPro: db.users[uid].isPro}));
       } catch(e) { res.writeHead(400); res.end('Error'); }
       return;
     }
@@ -298,6 +299,21 @@ const server = http.createServer(async (req, res) => {
         saveDb(db);
       }
       res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify({ok: true}));
+      return;
+    }
+
+    // POST /api/admin/users/pro?uid=...
+    if (p === '/api/admin/users/pro' && req.method === 'POST') {
+      if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
+      const uid = u.searchParams.get('uid');
+      try {
+        const data = await parseBody(req);
+        if (uid && db.users[uid]) {
+          db.users[uid].isPro = !!data.isPro;
+          saveDb(db);
+        }
+        res.writeHead(200, {'Content-Type':'application/json'}); res.end(JSON.stringify({ok: true}));
+      } catch(e) { res.writeHead(400); res.end('Error'); }
       return;
     }
 

@@ -19,33 +19,15 @@ window.GamePasangan = (() => {
   }
 
   function buildPairs(params) {
-    if (params.mode === 'suku') {
-      return params.syllables.map(sy => {
-        const [word, emoji] = params.words[sy][0];
-        return { key: sy, keyLabel: sy, target: word, targetLabel: emoji, emoji: true };
-      });
-    }
-    if (params.mode === 'letter2pic') {
-      // pasangan: huruf ↔ gambar kata yang diawali huruf itu
-      return params.letters.slice(0, 6).map(ch => {
-        const w = (params.pool || []).find(x => x.word[0] === ch.toLowerCase());
-        return { key: ch.toUpperCase(), keyLabel: ch.toUpperCase(), target: '#' + ch, targetLabel: w ? w.emoji : '🔤', emoji: true };
-      });
-    }
-    if (params.mode === 'kata') {
-      return params.pool.slice(0, 6).map(w => {
+    if (params.mode === 'word2pic') {
+      let selected = shuffle(params.pool || []).slice(0, 6);
+      if (selected.length < 3) selected = selected.concat(selected); // safety
+      return selected.slice(0, 6).map(w => {
         return { key: w.word, keyLabel: w.word, target: w.word, targetLabel: w.emoji, emoji: true };
       });
     }
-    // mode 'case': huruf unit ↔ huruf lawan kasus
-    const upper = params.letterCase === 'upper';
-    return params.letters.slice(0, 6).map(ch => ({
-      key: upper ? ch : ch.toUpperCase(),
-      keyLabel: upper ? ch : ch.toUpperCase(),
-      target: upper ? ch.toLowerCase() : ch.toLowerCase(),
-      targetLabel: upper ? ch.toLowerCase() : ch.toLowerCase(),
-      emoji: false
-    }));
+    // mode fallback jika ada yang salah panggil
+    return [];
   }
 
   function start(params) {
@@ -72,17 +54,14 @@ window.GamePasangan = (() => {
     progressEl.textContent = pairs.length + ' pasangan';
 
     area.innerHTML =
-      '<p class="match-hint">' + (params.mode === 'suku'
-        ? 'Hubungkan suku kata dengan gambarnya! 👇'
-        : params.mode === 'letter2pic'
-          ? 'Hubungkan huruf dengan gambarnya! 👇'
-          : 'Hubungkan huruf besar dengan huruf kecilnya! 👇') + '</p>' +
+      '<p class="match-hint">Hubungkan tulisan dengan gambarnya! 👇</p>' +
       '<div class="match-grid">' +
-        '<div class="match-col" id="match-left">' + keys.map(k =>
-          '<button class="match-item key" data-k="' + k + '">' +
-            (byKey[k].emoji ? byKey[k].keyLabel : '<span class="trace-font">' + byKey[k].keyLabel + '</span>') +
-          '</button>'
-        ).join('') + '</div>' +
+        '<div class="match-col" id="match-left">' + keys.map(k => {
+          const fontClass = k.length > 5 ? 'long-word' : '';
+          return '<button class="match-item key trace-font ' + fontClass + '" data-k="' + k + '">' +
+            byKey[k].keyLabel +
+          '</button>';
+        }).join('') + '</div>' +
         '<div class="match-col" id="match-right">' + targets.map(t =>
           '<button class="match-item target" data-t="' + t + '">' + labelFor(t) + '</button>'
         ).join('') + '</div>' +

@@ -128,11 +128,22 @@ window.Store = (() => {
     },
     async syncProgress(uid, userObj) {
       try {
-        await fetch('/tts?api=/sync&uid=' + uid, {
+        const res = await fetch('/tts?api=/sync&uid=' + uid, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(userObj)
         });
+        if (res.ok) {
+          const data = await readJson(res);
+          if (data && data.isPro !== undefined) {
+             // Update status Pro lokal sesuai server (menerima upgrade dari Admin)
+             const p = getProfiles().find(x => x.id === uid);
+             if (p && p.isPro !== data.isPro) {
+               p.isPro = data.isPro;
+               save(); // Simpan diam-diam tanpa memicu sync ulang
+             }
+          }
+        }
       } catch (e) { console.error('Gagal sync', e); }
     }
   };
@@ -149,6 +160,13 @@ window.Store = (() => {
     },
     async deleteUser(uid) {
       await fetch('/tts?api=/admin/users/delete&uid=' + uid, { method: 'POST', headers: { 'x-tts-token': getStoredAdminToken() } });
+    },
+    async setPro(uid, isPro) {
+      await fetch('/tts?api=/admin/users/pro&uid=' + uid, {
+        method: 'POST',
+        headers: { 'x-tts-token': getStoredAdminToken(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPro })
+      });
     }
   };
   function getStoredAdminToken() {

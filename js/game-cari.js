@@ -20,18 +20,12 @@ window.GameCari = (() => {
   }
 
   const ROUNDS = 5;
-  const HIDDEN = 5;   // jumlah salinan huruf/suku kata yang dicari
-  const CELLS = 20;   // total ubin (4 baris × 5 kolom)
+  const HIDDEN = 3;   // jumlah kata yang dicari
+  const CELLS = 12;   // total ubin (3 baris × 4 kolom)
 
-  function start(params) {
+  function start({ pool, profile, onDone }) {
     active = true;
     timers = [];
-    const items = params.items;
-    const show = (it) => {
-      if (params.display === 'upper') return it.toUpperCase();
-      if (params.display === 'lower') return it.toLowerCase();
-      return it;
-    };
 
     let round = 0, foundCount = 0, correctTaps = 0, wrongTaps = 0;
     let current = null; // { target, cells: [...] }
@@ -43,45 +37,48 @@ window.GameCari = (() => {
       if (!active) return;
       progressEl.textContent = 'Ronde ' + (round + 1) + '/' + ROUNDS;
       // pilih target yang berbeda dari ronde sebelumnya
-      let target = items[(Math.random() * items.length) | 0];
+      let targetObj = pool[(Math.random() * pool.length) | 0];
       let prev = current && current.target;
       let guard = 0;
-      while (target === prev && guard++ < 8) target = items[(Math.random() * items.length) | 0];
+      while (targetObj.word === (prev && prev.word) && guard++ < 8) {
+        targetObj = pool[(Math.random() * pool.length) | 0];
+      }
 
-      // susun grid: 5 salinan target + sisanya pengalih (boleh berulang)
-      const others = items.filter(i => i !== target);
+      // susun grid: HIDDEN salinan target + sisanya pengalih (boleh berulang)
+      const others = pool.filter(w => w.word !== targetObj.word);
       const distractors = [];
       for (let i = 0; i < CELLS - HIDDEN; i++) {
         distractors.push(others[(Math.random() * others.length) | 0]);
       }
-      const cells = shuffle([].concat(new Array(HIDDEN).fill(target), distractors));
-      current = { target, cells };
+      const cells = shuffle([].concat(new Array(HIDDEN).fill(targetObj), distractors));
+      current = { target: targetObj, cells };
       foundCount = 0;
 
       area.innerHTML =
         '<div class="game-question">' +
-          '<p class="match-hint" style="margin:0;">Temukan semua <b class="cari-target">' + show(target) + '</b> di kotak ajaib! 🔍</p>' +
+          '<p class="match-hint" style="margin:0;">Temukan semua kata <b class="cari-target">' + current.target.word + '</b> ! 🔍</p>' +
           '<button class="btn-speaker" id="btn-speaker" aria-label="Dengar lagi">🔊</button>' +
           '<p class="cari-counter"><span id="cari-found">0</span>/' + HIDDEN + ' ditemukan</p>' +
         '</div>' +
-        '<div class="cari-grid">' +
-          cells.map((c, i) =>
-            '<button class="cari-tile" data-i="' + i + '"><span class="cari-cell trace-font">' + show(c) + '</span></button>'
-          ).join('') +
+        '<div class="cari-grid word-grid">' +
+          cells.map((c, i) => {
+            const fontClass = c.word.length > 5 ? 'long-word' : c.word.length > 8 ? 'very-long-word' : '';
+            return '<button class="cari-tile ' + fontClass + '" data-i="' + i + '"><span class="cari-cell trace-font">' + c.word + '</span></button>';
+          }).join('') +
         '</div>';
 
-      document.getElementById('btn-speaker').addEventListener('click', () => AudioSys.speakItem(target, { flush: true }));
+      document.getElementById('btn-speaker').addEventListener('click', () => AudioSys.speakItem(current.target.word, { flush: true }));
 
       const tiles = area.querySelectorAll('.cari-tile');
       tiles.forEach(t => t.addEventListener('click', () => onTap(t, cells[Number(t.dataset.i)])));
 
       // auto-play tanpa flush (tidak memotong suara apa pun)
-      later(() => AudioSys.speakItem(target), 350);
+      later(() => AudioSys.speakItem(current.target.word), 350);
     }
 
-    function onTap(tile, val) {
+    function onTap(tile, valObj) {
       if (!active || tile.classList.contains('found') || tile.classList.contains('wrong')) return;
-      if (val === current.target) {
+      if (valObj.word === current.target.word) {
         tile.classList.add('found');
         correctTaps++;
         foundCount++;

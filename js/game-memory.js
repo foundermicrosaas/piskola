@@ -19,30 +19,17 @@ window.GameMemory = (() => {
   }
 
   function buildPairs(params) {
-    if (params.mode === 'suku') {
-      return params.syllables.map(sy => {
-        const [word, emoji] = params.words[sy][0];
-        return { a: sy, b: emoji, bEmoji: true };
-      });
-    }
-    if (params.mode === 'letter2pic') {
-      // pasangan: huruf ↔ gambar kata yang diawali huruf itu
-      return params.letters.slice(0, 8).map(ch => {
-        const w = (params.pool || []).find(x => x.word[0] === ch.toLowerCase());
-        return { a: ch.toUpperCase(), b: w ? w.emoji : '🔤', bEmoji: true };
-      });
-    }
-    if (params.mode === 'kata') {
-      return params.pool.slice(0, 8).map(w => {
+    if (params.mode === 'word2pic') {
+      // 8 pasangan acak (atau semua yang ada)
+      let selected = shuffle(params.pool || []).slice(0, 8);
+      // pastikan minimal 4 untuk mengisi grid
+      if (selected.length < 4) selected = selected.concat(selected); 
+      return selected.slice(0, 8).map(w => {
         return { a: w.word, b: w.emoji, bEmoji: true };
       });
     }
-    const upper = params.letterCase === 'upper';
-    return params.letters.slice(0, 8).map(ch => ({
-      a: upper ? ch : ch.toUpperCase(),
-      b: upper ? ch.toLowerCase() : ch.toLowerCase(),
-      bEmoji: false
-    }));
+    // mode fallback jika ada yang salah panggil
+    return [];
   }
 
   function start(params) {
@@ -67,12 +54,13 @@ window.GameMemory = (() => {
     area.innerHTML =
       '<p class="match-hint">Buka kartu dan temukan pasangannya! 🃏</p>' +
       '<div class="mem-grid cols-' + Math.min(4, cards.length / 2) + '">' +
-        cards.map((c, i) =>
-          '<button class="mem-card" data-i="' + i + '" data-pair="' + c.pair + '" data-side="' + c.side + '">' +
+        cards.map((c, i) => {
+          const fontClass = !c.emoji && c.label.length > 5 ? 'long-word' : '';
+          return '<button class="mem-card" data-i="' + i + '" data-pair="' + c.pair + '" data-side="' + c.side + '">' +
             '<span class="mem-back">?</span>' +
-            '<span class="mem-front' + (c.emoji ? ' emoji' : ' trace-font') + '">' + c.label + '</span>' +
-          '</button>'
-        ).join('') +
+            '<span class="mem-front' + (c.emoji ? ' emoji' : ' trace-font ' + fontClass) + '">' + c.label + '</span>' +
+          '</button>';
+        }).join('') +
       '</div>';
 
     const btns = area.querySelectorAll('.mem-card');

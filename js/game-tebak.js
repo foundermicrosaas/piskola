@@ -19,7 +19,7 @@ window.GameTebak = (() => {
   function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
   function clearTimers() { timers.forEach(clearTimeout); timers = []; }
 
-  function start({ items, display, profile, onDone }) {
+  function start({ pool, profile, onDone }) {
     active = true;
     timers = [];
     round = 0; correct = 0; attempts = 0; streak = 0; busy = false;
@@ -28,47 +28,47 @@ window.GameTebak = (() => {
     const progressEl = document.getElementById('game-progress');
     const ROUNDS = 8;
 
-    function tileText(item) {
-      if (display === 'upper') return item.toUpperCase();
-      return item; // 'lower' atau 'raw'
-    }
-
     function renderRound() {
       if (!active) return;
       const prev = current ? current.target : null;
-      let target = items[(Math.random() * items.length) | 0];
+      let targetObj = pool[(Math.random() * pool.length) | 0];
       let guard = 0;
-      while (target === prev && guard++ < 6) target = items[(Math.random() * items.length) | 0];
-      const choices = shuffle([target, ...shuffle(items.filter(l => l !== target)).slice(0, 3)]);
-      current = { target, choices };
+      while (targetObj.word === (prev && prev.word) && guard++ < 6) {
+        targetObj = pool[(Math.random() * pool.length) | 0];
+      }
+      // Ambil 3 kata lain secara acak
+      const others = shuffle(pool.filter(w => w.word !== targetObj.word)).slice(0, 3);
+      const choices = shuffle([targetObj, ...others]);
+      current = { target: targetObj, choices };
 
       progressEl.textContent = (round + 1) + '/' + ROUNDS;
       area.innerHTML =
         '<div class="game-question">' +
-          '<p>Yang mana yang kamu dengar?</p>' +
+          '<p>Tulisan mana yang dibaca...</p>' +
           '<button class="btn-speaker" id="btn-speaker" aria-label="Dengar lagi">🔊</button>' +
           '<button class="btn btn-secondary btn-replay">🔁 Dengar lagi</button>' +
         '</div>' +
         '<div class="letter-grid">' +
-          choices.map((l, i) =>
-            '<button class="letter-tile tile-' + i + '" data-item="' + l + '">' + tileText(l) + '</button>'
-          ).join('') +
+          choices.map((w, i) => {
+            const fontClass = w.word.length > 5 ? 'long-word' : w.word.length > 8 ? 'very-long-word' : '';
+            return '<button class="letter-tile tile-' + i + ' ' + fontClass + '" data-item="' + w.word + '">' + w.word + '</button>';
+          }).join('') +
         '</div>';
 
-      document.getElementById('btn-speaker').addEventListener('click', () => AudioSys.speakItem(target, { flush: true }));
-      area.querySelector('.btn-replay').addEventListener('click', () => AudioSys.speakItem(target, { flush: true }));
+      document.getElementById('btn-speaker').addEventListener('click', () => AudioSys.speakItem(current.target.word, { flush: true }));
+      area.querySelector('.btn-replay').addEventListener('click', () => AudioSys.speakItem(current.target.word, { flush: true }));
 
       area.querySelectorAll('.letter-tile').forEach(tile => {
         tile.addEventListener('click', () => onTap(tile.dataset.item, tile));
       });
 
-      later(() => AudioSys.speakItem(target), 350);
+      later(() => AudioSys.speakItem(current.target.word), 350);
     }
 
     function onTap(item, tile) {
       if (busy || !active) return;
       attempts++;
-      if (item === current.target) {
+      if (item === current.target.word) {
         busy = true;
         correct++; streak++;
         tile.classList.add('correct');

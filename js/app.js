@@ -38,44 +38,41 @@
     WORDS[syl].forEach(([word, emoji]) => WORDS_FLAT.push({ word, emoji, syl }));
   });
 
-  /* 10 game per unit huruf. Tebak Huruf, Tulis Huruf (tracing), Urutan Huruf,
-     dan Dengar Kata & Pilih Gambar dihilangkan — diganti game yang lebih
-     interaktif: Cari Huruf (memburu huruf di kotak ajaib), Kartu Pasangan &
-     Pasangkan Huruf & Gambar, dan Balon Huruf. 4 game pertama gratis. */
-  const HURUF_GAMES = [
-    { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
-    { id: 'susun', type: 'susun', title: 'Susun Huruf Kata', emoji: '🧩', desc: 'Susun huruf-hurufnya jadi kata yang benar.' },
-    { id: 'balon-huruf', type: 'balon', mode: 'huruf', title: 'Balon Huruf', emoji: '🎈', desc: 'Dengar hurufnya, lalu pecahkan balon yang benar.' },
-    { id: 'cari', type: 'cari', title: 'Cari Huruf', emoji: '🔍', desc: 'Temukan semua huruf yang diminta di kotak ajaib.' },
-    { id: 'hilang', type: 'hilang', title: 'Huruf Hilang dari Kata', emoji: '🕵️', desc: 'Huruf mana yang hilang dari kata ini?' },
-    { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
-    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
-    { id: 'memory-letter2pic', type: 'memory', mode: 'letter2pic', title: 'Kartu Pasangan Huruf & Gambar', emoji: '🃏', desc: 'Cocokkan huruf dengan gambar katanya.' },
-    { id: 'pasangan-letter2pic', type: 'pasangan', mode: 'letter2pic', title: 'Pasangkan Huruf & Gambar', emoji: '🔗', desc: 'Hubungkan huruf dengan gambar katanya.' },
-    { id: 'balon-kata', type: 'balon', mode: 'kata', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon berisi kata yang benar.' }
-  ];
-
-  /* 10 game per unit suku kata. Tebak Suku Kata, Urutan Suku Kata, dan
-     Dengar Kata & Pilih Gambar dihilangkan — diganti yang lebih interaktif:
-     Cari Suku Kata, Balon Suku Kata, dan Kartu Pasangan / Pasangkan Suku
-     Kata & Gambar. 4 game pertama gratis. */
-  const SUKU_GAMES = [
-    { id: 'sambung', type: 'sambung', title: 'Sambung Suku Kata', emoji: '🔗', desc: 'Tarik garis dari huruf ke vokal jadi suku kata.' },
-    { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Gambar & Kata', emoji: '🖼️', desc: 'Lihat gambar, pilih tulisan katanya.' },
-    { id: 'susun', type: 'susun', title: 'Susun Suku Kata', emoji: '🧩', desc: 'Susun suku kata jadi kata yang benar.' },
-    { id: 'cari', type: 'cari', title: 'Cari Suku Kata', emoji: '🔍', desc: 'Temukan semua suku kata yang diminta.' },
-    { id: 'balon-suku', type: 'balon', mode: 'suku', title: 'Balon Suku Kata', emoji: '🎈', desc: 'Dengar suku katanya, lalu pecahkan balon yang benar.' },
-    { id: 'hilang', type: 'hilang', title: 'Suku Kata Hilang', emoji: '🕵️', desc: 'Suku kata mana yang hilang dari kata ini?' },
-    { id: 'memory-kata', type: 'memory', mode: 'kata', title: 'Kartu Pasangan Kata', emoji: '🃏', desc: 'Balik kartu dan cocokkan kata dengan gambarnya.' },
-    { id: 'pasangan-kata', type: 'pasangan', mode: 'kata', title: 'Pasangkan Suku Kata', emoji: '🔗', desc: 'Tarik garis dari kata ke gambarnya.' },
-    { id: 'memory-suku', type: 'memory', mode: 'suku', title: 'Kartu Pasangan Suku Kata', emoji: '🃏', desc: 'Cocokkan suku kata dengan gambar katanya.' },
-    { id: 'pasangan-suku', type: 'pasangan', mode: 'suku', title: 'Pasangkan Suku Kata & Gambar', emoji: '🔗', desc: 'Hubungkan suku kata dengan gambar katanya.' }
+  const BACA_GAMES = [
+    { id: 'tebak', type: 'tebak', title: 'Tebak Kata', emoji: '🔍', desc: 'Dengarkan kata dan temukan tulisan yang benar.' },
+    { id: 'cari', type: 'cari', title: 'Cari Kata', emoji: '🕵️', desc: 'Cari dan kumpulkan semua kata target yang tersembunyi.' },
+    { id: 'balon', type: 'balon', title: 'Balon Kata', emoji: '🎈', desc: 'Pecahkan balon yang memiliki kata yang benar.' },
+    { id: 'susun', type: 'susun', title: 'Susun Kata', emoji: '🚂', desc: 'Susun huruf-huruf menjadi kata yang benar.' },
+    { id: 'pasangan', type: 'pasangan', mode: 'word2pic', title: 'Pasangkan Kata', emoji: '🔗', desc: 'Tarik garis dari tulisan kata ke gambarnya.' },
+    { id: 'memory', type: 'memory', mode: 'word2pic', title: 'Memori Kata', emoji: '🎴', desc: 'Buka kartu untuk mencocokkan tulisan kata dan gambar.' },
+    { id: 'kuis-sound2pic', type: 'kuis', mode: 'sound2pic', title: 'Tebak Gambar', emoji: '🖼️', desc: 'Dengarkan kata dan pilih gambar yang tepat.' },
+    { id: 'kuis-pic2word', type: 'kuis', mode: 'pic2word', title: 'Tebak Tulisan', emoji: '📝', desc: 'Lihat gambar dan pilih tulisan yang benar.' },
+    { id: 'kuis-sound2word', type: 'kuis', mode: 'sound2word', title: 'Dengar & Pilih', emoji: '👂', desc: 'Dengarkan dan pilih tulisan yang benar.' },
+    { id: 'hilang', type: 'hilang', title: 'Huruf Hilang', emoji: '🧩', desc: 'Lengkapi huruf atau suku kata yang hilang.' }
   ];
 
   const SYL_GROUPS = [
     { label: 'b', syllables: ['ba', 'bi', 'bu', 'be', 'bo'] },
+    { label: 'c', syllables: ['ca', 'ci', 'cu', 'ce', 'co'] },
+    { label: 'd', syllables: ['da', 'di', 'du', 'de', 'do'] },
+    { label: 'f', syllables: ['fa', 'fi', 'fu', 'fe', 'fo'] },
+    { label: 'g', syllables: ['ga', 'gi', 'gu', 'ge', 'go'] },
+    { label: 'h', syllables: ['ha', 'hi', 'hu', 'he', 'ho'] },
+    { label: 'j', syllables: ['ja', 'ji', 'ju', 'je', 'jo'] },
+    { label: 'k', syllables: ['ka', 'ki', 'ku', 'ke', 'ko'] },
+    { label: 'l', syllables: ['la', 'li', 'lu', 'le', 'lo'] },
     { label: 'm', syllables: ['ma', 'mi', 'mu', 'me', 'mo'] },
-    { label: 'k', syllables: ['ka', 'ki', 'ku', 'ke', 'ko'] }
+    { label: 'n', syllables: ['na', 'ni', 'nu', 'ne', 'no'] },
+    { label: 'p', syllables: ['pa', 'pi', 'pu', 'pe', 'po'] },
+    { label: 'q', syllables: ['qa', 'qi', 'qu', 'qe', 'qo'] },
+    { label: 'r', syllables: ['ra', 'ri', 'ru', 're', 'ro'] },
+    { label: 's', syllables: ['sa', 'si', 'su', 'se', 'so'] },
+    { label: 't', syllables: ['ta', 'ti', 'tu', 'te', 'to'] },
+    { label: 'v', syllables: ['va', 'vi', 'vu', 've', 'vo'] },
+    { label: 'w', syllables: ['wa', 'wi', 'wu', 'we', 'wo'] },
+    { label: 'x', syllables: ['xa', 'xi', 'xu', 'xe', 'xo'] },
+    { label: 'y', syllables: ['ya', 'yi', 'yu', 'ye', 'yo'] },
+    { label: 'z', syllables: ['za', 'zi', 'zu', 'ze', 'zo'] }
   ];
 
   const UNITS = [];
@@ -88,29 +85,29 @@
       id: 'kapital-' + (gi + 1),
       title: 'Unit ' + (gi + 1) + ' — Huruf Kapital ' + g.label,
       emoji: '🔠',
-      desc: 'Kenali nama, bunyi, dan bentuk huruf kapital ' + upper.join(', ') + '.',
+      desc: 'Kenali nama, bunyi, dan bentuk huruf kapital ' + upper.join(', ') + '. Lalu mainkan gamenya dengan kata-kata!',
       kind: 'huruf', letterCase: 'upper', letters: upper,
-      games: HURUF_GAMES
+      games: BACA_GAMES
     });
   });
   LETTER_GROUPS.forEach((g, gi) => {
     UNITS.push({
       id: 'kecil-' + (gi + 1),
-      title: 'Unit ' + (gi + 4) + ' — Huruf Kecil ' + g.label.toLowerCase(),
+      title: 'Unit ' + (gi + 1 + LETTER_GROUPS.length) + ' — Huruf Kecil ' + g.label.toLowerCase(),
       emoji: '🔡',
-      desc: 'Kenali nama, bunyi, dan bentuk huruf kecil ' + g.chars.join(', ') + '.',
+      desc: 'Kenali nama, bunyi, dan bentuk huruf kecil ' + g.chars.join(', ') + '. Lalu mainkan gamenya dengan kata-kata!',
       kind: 'huruf', letterCase: 'lower', letters: g.chars,
-      games: HURUF_GAMES
+      games: BACA_GAMES
     });
   });
   SYL_GROUPS.forEach((g, gi) => {
     UNITS.push({
       id: 'suku-' + g.label,
-      title: 'Unit ' + (7 + gi) + ' — Suku Kata ' + g.label,
+      title: 'Unit ' + (gi + 1 + (LETTER_GROUPS.length * 2)) + ' — Suku Kata ' + g.label.toUpperCase(),
       emoji: '🧩',
-      desc: 'Sambungkan huruf, eja, dan susun suku kata ' + g.syllables.join(', ') + ' jadi kata.',
+      desc: 'Kenali dan pelajari suku kata ' + g.syllables.join(', ') + ' dengan menyusunnya menjadi kata bermakna!',
       kind: 'suku', syllables: g.syllables,
-      games: SUKU_GAMES
+      games: BACA_GAMES
     });
   });
 
@@ -198,25 +195,15 @@
   function panggilanLabel(p) { return p.panggilan === 'kakak' ? 'Kakak' : 'Adek'; }
 
   const WELCOME = {
-    'tebak-huruf': 'Yuk kita belajar menebak huruf',
-    'tebak-suku': 'Yuk kita belajar suku kata',
-    tracing: 'Yuk kita belajar bentuk huruf',
-    cari: 'Yuk kita cari hurufnya di kotak ajaib',
-    'balon-huruf': 'Yuk kita pecahkan balon hurufnya',
-    'balon-suku': 'Yuk kita pecahkan balon suku katanya',
-    'memory-letter2pic': 'Yuk kita cocokkan huruf dengan gambarnya',
-    'pasangan-letter2pic': 'Yuk kita pasangkan huruf dengan gambarnya',
-    'memory-suku': 'Yuk kita cari pasangan suku katanya',
-    'pasangan-suku': 'Yuk kita pasangkan suku kata dengan gambarnya',
-    sambung: 'Yuk kita sambungkan huruf jadi suku kata',
-    pasangan: 'Yuk kita pasangkan yang cocok',
-    memory: 'Yuk kita cari pasangan kartunya',
-    urutan: 'Yuk kita urutkan hurufnya',
-    balon: 'Yuk kita pecahkan balon yang benar',
-    'kuis-sound2pic': 'Yuk kita tebak kata dari suaranya',
+    tebak: 'Yuk kita belajar tebak kata',
+    cari: 'Yuk kita cari kata di kotak ajaib',
+    balon: 'Yuk kita pecahkan balon katanya',
+    'pasangan-word2pic': 'Yuk kita pasangkan kata dengan gambarnya',
+    'memory-word2pic': 'Yuk kita cocokkan kartu kata dengan gambarnya',
+    'kuis-sound2pic': 'Yuk kita tebak gambar dari suaranya',
     'kuis-pic2word': 'Yuk kita tebak tulisan katanya',
     'kuis-sound2word': 'Yuk kita dengarkan dan pilih kata yang benar',
-    hilang: 'Yuk kita isi yang hilang',
+    hilang: 'Yuk kita isi huruf yang hilang',
     susun: 'Yuk kita susun huruf jadi kata',
     /* belajar hitung (kunci = mode game matematika) */
     count: 'Yuk kita belajar menghitung',
@@ -532,7 +519,7 @@
     // Sambutan interaktif
     const welcomeKey = game.type === 'math'
       ? game.mode
-      : (game.id === 'tebak' ? (unit.kind === 'suku' ? 'tebak-suku' : 'tebak-huruf') : game.id);
+      : (game.mode === 'word2pic' ? game.type + '-' + game.mode : game.id);
     AudioSys.gameWelcome(profile(), WELCOME[welcomeKey] || 'Yuk kita main ' + game.title.toLowerCase());
 
     const btnStart = $('#btn-start-game');
@@ -559,63 +546,24 @@
 
     switch (game.type) {
       case 'tebak':
-        GameTebak.start({
-          items: unit.kind === 'huruf' ? unit.letters : unit.syllables,
-          display: unit.kind === 'huruf' ? unit.letterCase : 'raw',
-          ...common
-        });
-        break;
       case 'cari':
-        GameCari.start({
-          items: unit.kind === 'huruf' ? unit.letters : unit.syllables,
-          display: unit.kind === 'huruf' ? unit.letterCase : 'raw',
-          ...common
-        });
-        break;
-      case 'tracing':
-        GameTracing.start({ letters: unit.letters, letterCase: unit.letterCase, ...common });
-        break;
-      case 'sambung':
-        GameSambung.start({ syllables: unit.syllables, words: WORDS, ...common });
-        break;
-      case 'pasangan':
-        GamePasangan.start({
-          mode: game.mode || (unit.kind === 'suku' ? 'suku' : 'case'),
-          letterCase: unit.letterCase, letters: unit.letters,
-          syllables: unit.syllables, words: WORDS,
-          pool: unit.kind === 'suku' 
-            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
-            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
-          ...common
-        });
-        break;
-      case 'memory':
-        GameMemory.start({
-          mode: game.mode || (unit.kind === 'suku' ? 'suku' : 'case'),
-          letterCase: unit.letterCase, letters: unit.letters,
-          syllables: unit.syllables, words: WORDS,
-          pool: unit.kind === 'suku' 
-            ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
-            : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase())),
-          ...common
-        });
-        break;
-      case 'urutan':
-        GameUrutan.start({
-          letters: unit.kind === 'suku' ? unit.syllables : unit.letters,
-          letterCase: unit.letterCase,
-          ...common
-        });
-        break;
       case 'balon':
-        const pool = unit.kind === 'suku' 
+        const wPool = unit.kind === 'suku' 
           ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
           : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase()));
-        GameBalon.start({
-          items: game.mode === 'kata' ? pool.map(w => w.word) : (unit.kind === 'huruf' ? unit.letters : unit.syllables),
-          display: game.mode === 'kata' ? 'raw' : (unit.kind === 'huruf' ? unit.letterCase : 'raw'),
-          ...common
-        });
+        
+        if (game.type === 'tebak') GameTebak.start({ pool: wPool, ...common });
+        if (game.type === 'cari') GameCari.start({ pool: wPool, ...common });
+        if (game.type === 'balon') GameBalon.start({ pool: wPool, ...common });
+        break;
+      case 'pasangan':
+      case 'memory':
+        const wmPool = unit.kind === 'suku' 
+          ? WORDS_FLAT.filter(w => unit.syllables.includes(w.syl)) 
+          : WORDS_FLAT.filter(w => unit.letters.map(l=>l.toLowerCase()).includes(w.word[0].toLowerCase()));
+        
+        if (game.type === 'pasangan') GamePasangan.start({ pool: wmPool, mode: 'word2pic', ...common });
+        if (game.type === 'memory') GameMemory.start({ pool: wmPool, mode: 'word2pic', ...common });
         break;
       case 'kuis':
         GameKuis.start({
@@ -947,8 +895,8 @@
      dan saat keluar dari layar game, supaya timer lama tidak menimpa layar
      game berikutnya ("game sebelumnya tiba-tiba muncul"). */
   function cancelAllGames() {
-    ['GameTebak', 'GameTracing', 'GameSambung', 'GamePasangan', 'GameMemory',
-     'GameUrutan', 'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
+    ['GameTebak', 'GameCari', 'GamePasangan', 'GameMemory',
+     'GameBalon', 'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'].forEach(name => {
       const g = window[name];
       if (g && g.cancel) g.cancel();
     });
