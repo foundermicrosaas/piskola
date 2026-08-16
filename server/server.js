@@ -87,7 +87,7 @@ async function ttsFile(text, voice, speed, log) {
   }
   const buf = Buffer.from(await res.arrayBuffer());
   fs.writeFileSync(file, buf);
-  if (log) console.log('[TTS] generate ' + voice + ' @' + sp + ' → ' + path.basename(file));
+  if (log) console.log('[TTS] generate ' + voice + ' → ' + path.basename(file));
   return { ok: true, file, cached: false };
 }
 
