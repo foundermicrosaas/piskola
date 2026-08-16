@@ -947,7 +947,7 @@
         speed:         cfg.speed         || current.speed   || 0.75,
         serverTts:     cfg.serverTts !== undefined ? cfg.serverTts : (current.serverTts || false),
         serverUrl:     current.serverUrl || '/tts',
-        serverToken:   current.serverToken || '',
+        serverToken:   cfg.serverToken !== undefined ? cfg.serverToken : (current.serverToken || ''),
         apiKey:        current.apiKey || ''
       }));
       AudioSys.refreshConfig(); // beritahu AudioSys agar pakai config terbaru

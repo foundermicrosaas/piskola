@@ -137,7 +137,8 @@ const server = http.createServer(async (req, res) => {
       femaleVoiceId: cfg.femaleVoiceId || ENV.FEMALE_VOICE_ID || '',
       maleVoiceId:   cfg.maleVoiceId   || ENV.MALE_VOICE_ID   || '',
       speed:         cfg.speed         || 0.75,
-      serverTts:     true
+      serverTts:     true,
+      serverToken:   TOKEN // Berikan token ke PWA agar bisa memanggil /tts
     }));
     return;
   }
