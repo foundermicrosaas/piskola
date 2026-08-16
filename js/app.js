@@ -927,10 +927,13 @@
      konfigurasi manual per perangkat. Dipanggil diam-diam saat startup. */
   async function fetchServerConfig() {
     try {
-      // Cari serverUrl dari localStorage — bisa sudah diisi dari perangkat lain atau belum
+      // Gunakan /tts?action=get-config agar selalu lolos nginx proxy
       const el = Store.getElevenLabs();
-      // Coba endpoint /config relatif (selalu ada jika server berjalan di domain yang sama)
-      const configUrl = new URL('/config', location.href);
+      const base = el.serverUrl || '/tts';
+      const configUrl = new URL(base, location.href);
+      if (!/\/tts$/i.test(configUrl.pathname)) configUrl.pathname = configUrl.pathname.replace(/\/+$/, '') + '/tts';
+      configUrl.searchParams.set('action', 'get-config');
+      if (el.serverToken) configUrl.searchParams.set('token', el.serverToken);
       const res = await fetch(configUrl, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
       if (!res.ok) return;
       const cfg = await res.json();

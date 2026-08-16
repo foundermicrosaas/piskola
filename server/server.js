@@ -125,23 +125,26 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   const ip = req.socket.remoteAddress || '?';
-
-  /* GET /config — kembalikan konfigurasi voice (publik, aman — tidak ada API key) */
   const u0 = new URL(req.url, 'http://x');
-  if (req.method === 'GET' && u0.pathname === '/config') {
+  const action = u0.searchParams.get('action') || '';
+
+  /* GET /tts?action=get-config — kembalikan voice config (publik, aman — tidak ada API key)
+     Menggunakan path /tts agar selalu lolos nginx proxy tanpa perlu konfigurasi tambahan. */
+  if (req.method === 'GET' && (u0.pathname === '/tts' || u0.pathname === '/config') && action === 'get-config') {
     const cfg = readAppConfig();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
     res.end(JSON.stringify({
       femaleVoiceId: cfg.femaleVoiceId || ENV.FEMALE_VOICE_ID || '',
       maleVoiceId:   cfg.maleVoiceId   || ENV.MALE_VOICE_ID   || '',
       speed:         cfg.speed         || 0.75,
-      serverTts:     true  // jika server berjalan, mode server selalu aktif
+      serverTts:     true
     }));
     return;
   }
 
-  /* POST /config — simpan konfigurasi voice dari Admin (harus pakai token) */
-  if (req.method === 'POST' && u0.pathname === '/config') {
+  /* POST /tts?action=set-config — simpan voice config dari Admin (token-protected)
+     Menggunakan path /tts agar selalu lolos nginx proxy. */
+  if (req.method === 'POST' && (u0.pathname === '/tts' || u0.pathname === '/config') && action === 'set-config') {
     if (!authorized(req)) { res.writeHead(401); res.end('token salah'); return; }
     let body = '';
     req.on('data', d => { body += d; if (body.length > 2048) req.destroy(); });

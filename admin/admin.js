@@ -446,11 +446,12 @@
       renderVoice();
 
       // Kirim voice config ke server agar SEMUA perangkat user otomatis mendapatkannya
-      // (localStorage hanya tersimpan di perangkat ini — server menjadi sumber kebenaran)
+      // Gunakan /tts?action=set-config agar selalu lolos nginx proxy (tidak perlu ubah nginx)
       const configPayload = { femaleVoiceId: female, maleVoiceId: male, speed };
       const configUrl = new URL(serverUrl, location.href);
       if (!/\/tts$/i.test(configUrl.pathname)) configUrl.pathname = configUrl.pathname.replace(/\/+$/, '') + '/tts';
-      configUrl.pathname = configUrl.pathname.replace(/\/tts$/i, '/config');
+      configUrl.searchParams.set('action', 'set-config');
+      if (serverToken) configUrl.searchParams.set('token', serverToken);
       const headers = { 'Content-Type': 'application/json' };
       if (serverToken) headers['x-tts-token'] = serverToken;
       try {

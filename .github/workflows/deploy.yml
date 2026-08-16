@@ -21,4 +21,6 @@ jobs:
           script: |
             cd /var/www/piskola
             git pull origin piskola
+            # Restart server Node.js agar kode terbaru aktif
+            pm2 restart piskola-tts 2>/dev/null || pm2 restart all 2>/dev/null || true
             echo "Deploy selesai: $(date)"
