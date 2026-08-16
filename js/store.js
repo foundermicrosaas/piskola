@@ -73,7 +73,11 @@ window.Store = (() => {
   async function readJson(res) {
     const text = await res.text().catch(() => '');
     try { return JSON.parse(text); } catch (e) {
-      throw new Error('Server belum merespons dengan benar (HTTP ' + res.status + '). Pastikan server API aktif, lalu coba lagi.');
+      // 405 = POST /api/* jatuh ke file statis nginx (blok location /api/ belum ada)
+      const hint = res.status === 405
+        ? ' Nginx di server belum mem-proxy /api/ — tambahkan blok location /api/ lalu reload nginx.'
+        : ' Pastikan server API aktif, lalu coba lagi.';
+      throw new Error('Server belum merespons dengan benar (HTTP ' + res.status + ').' + hint);
     }
   }
 

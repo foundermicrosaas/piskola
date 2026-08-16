@@ -3,7 +3,7 @@
    terlihat), cache-first untuk file audio (materi statis — hemat bandwidth,
    mendukung offline). Saat audio ElevenLabs diintegrasikan, tambahkan manifes
    audio ke precache (lihat KONSEP-APLIKASI.md §9.2). */
-const CACHE = 'piskola-v17';
+const CACHE = 'piskola-v18';
 const ASSETS = [
   './',
   './index.html',
