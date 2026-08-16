@@ -13,6 +13,7 @@ const ASSETS = [
   './js/confetti.js',
   './js/letters.js',
   './js/game-tebak.js',
+  './js/game-cari.js',
   './js/game-tracing.js',
   './js/game-sambung.js',
   './js/game-pasangan.js',
