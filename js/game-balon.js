@@ -19,9 +19,11 @@ window.GameBalon = (() => {
 
   const ROUNDS = 6;
 
-  function start({ pool, profile, onDone }) {
+  function start(params) {  // FIX: simpan params utuh agar onDone bisa diakses finish()
     active = true;
     timers = [];
+    const pool = params.pool;
+    const onDone = params.onDone;  // FIX: tangkap onDone di scope luar
 
     let round = 0, correct = 0, attempts = 0, busy = false;
 
@@ -39,15 +41,16 @@ window.GameBalon = (() => {
       }
       state = { target: targetObj };
 
-      const others = shuffle(pool.filter(w => w.word !== targetObj.word)).slice(0, 4);
+      const others = shuffle(pool.filter(w => w.word !== targetObj.word)).slice(0, 3); // 4 balon total agar tidak overflow
       const choices = shuffle([targetObj, ...others]);
 
       area.innerHTML =
         '<p class="match-hint">Dengarkan, lalu pecahkan balon yang benar! 🎈</p>' +
         '<div class="balloon-stage" id="balloon-stage">' +
           choices.map((w, i) => {
-            const fontClass = w.word.length > 5 ? 'long-word' : w.word.length > 8 ? 'very-long-word' : '';
-            return '<button class="balloon" data-it="' + w.word + '" style="left:' + (8 + i * 19) + '%;animation-delay:' + (i * 0.7) + 's">' +
+            const len = w.word.length;
+            const fontClass = len > 8 ? 'very-long-word' : len > 5 ? 'long-word' : '';
+            return '<button class="balloon" data-it="' + w.word + '" style="left:' + (5 + i * 23) + '%;animation-delay:' + (i * 0.6) + 's">' +
               '<span class="balloon-fill"></span>' +
               '<span class="balloon-label ' + fontClass + '">' + w.word + '</span>' +
               '<span class="balloon-string"></span>' +
@@ -87,14 +90,16 @@ window.GameBalon = (() => {
     }
 
     function finish() {
+      if (!active) return;
       clearTimers();
-      const accuracy = Math.round((correct / attempts) * 100);
+      const safeAttempts = attempts || 1; // hindari NaN jika tidak ada klik sama sekali
+      const accuracy = Math.round((correct / safeAttempts) * 100);
       const stars = accuracy >= 95 ? 3 : accuracy >= 80 ? 2 : 1;
       AudioSys.sfx.fanfare();
       Confetti.rain(50);
       later(() => {
         active = false;
-        params.onDone({ stars, accuracy, plays: 1 });
+        onDone({ stars, accuracy, plays: 1 });  // FIX: gunakan onDone lokal
       }, 700);
     }
 

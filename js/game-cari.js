@@ -1,8 +1,7 @@
-/* Game — Cari Huruf / Cari Suku Kata:
-   Sebuah kotak berisi 20 ubin; anak mencari & mengetuk SEMUA ubin yang
-   berisi huruf/suku kata yang diminta (5 salinan tersembunyi di antara
-   ubin lain). Bedanya dengan kuis biasa: anak MEMBURU & MENGUMPULKAN —
-   lebih interaktif dan melatih ketelitian. 5 ronde → bintang dari akurasi. */
+/* Game — Cari Kata:
+   Sebuah kotak berisi ubin; anak mencari & mengetuk SEMUA ubin yang
+   berisi kata yang diminta (3 salinan tersembunyi di antara ubin lain).
+   5 ronde → bintang dari akurasi. */
 window.GameCari = (() => {
   let active = false;
   let timers = [];
@@ -23,9 +22,11 @@ window.GameCari = (() => {
   const HIDDEN = 3;   // jumlah kata yang dicari
   const CELLS = 12;   // total ubin (3 baris × 4 kolom)
 
-  function start({ pool, profile, onDone }) {
+  function start(params) {   // FIX: gunakan params sebagai objek utuh agar onDone bisa diakses di finish()
     active = true;
     timers = [];
+    const pool = params.pool;
+    const onDone = params.onDone;  // FIX: simpan referensi onDone di scope yang bisa diakses finish()
 
     let round = 0, foundCount = 0, correctTaps = 0, wrongTaps = 0;
     let current = null; // { target, cells: [...] }
@@ -104,6 +105,7 @@ window.GameCari = (() => {
     }
 
     function finish() {
+      if (!active) return;
       clearTimers();
       const attempts = correctTaps + wrongTaps;
       const accuracy = attempts ? Math.round((correctTaps / attempts) * 100) : 100;
@@ -112,7 +114,7 @@ window.GameCari = (() => {
       Confetti.rain(50);
       later(() => {
         active = false;
-        params.onDone({ stars, accuracy, plays: 1 });
+        onDone({ stars, accuracy, plays: 1 });  // FIX: onDone lokal, bukan params.onDone
       }, 700);
     }
 

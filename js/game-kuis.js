@@ -44,51 +44,58 @@ window.GameKuis = (() => {
       while (target.word === (prev && prev.word) && guard++ < 8) target = pool[(Math.random() * pool.length) | 0];
       state = { target };
 
+      const mode = MODE_INFO[params.mode] || MODE_INFO['sound2pic'];  // FIX: deklarasikan mode di sini!
+
       const others = shuffle(pool.filter(w => w.word !== target.word));
 
-      let choices, card;
       if (params.mode === 'sound2pic') {
-        choices = shuffle([target, ...others.slice(0, 3)]);
-        card = '<div class="quiz-prompt trace-font">❓</div>';
+        // Dengar suara → pilih gambar yang benar
+        const choices = shuffle([target, ...others.slice(0, 3)]);
         area.innerHTML =
           '<p class="match-hint">' + mode.hint + '</p>' +
+          '<div class="quiz-prompt-row">' +
+            '<span class="quiz-prompt-ikon">🔊</span>' +
+            '<button class="btn btn-secondary sm" id="btn-kuis-listen">Dengar Lagi 🎧</button>' +
+          '</div>' +
           '<div class="choice-grid">' +
             choices.map((w, i) =>
               '<button class="choice-btn tile-' + (i % 4) + '" data-w="' + w.word + '"><span class="quiz-emoji">' + w.emoji + '</span></button>'
             ).join('') +
           '</div>';
+        document.getElementById('btn-kuis-listen').addEventListener('click', () => AudioSys.speakItem(target.word, { flush: true }));
       } else if (params.mode === 'pic2word') {
-        choices = shuffle([target, ...others.slice(0, 3)]);
-        card = '<div class="quiz-emoji big">' + target.emoji + '</div>';
+        // Lihat gambar → pilih tulisan yang benar
+        const choices = shuffle([target, ...others.slice(0, 3)]);
         area.innerHTML =
           '<p class="match-hint">' + mode.hint + '</p>' +
-          card +
+          '<div class="quiz-emoji big">' + target.emoji + '</div>' +
           '<div class="choice-grid">' +
             choices.map((w, i) =>
               '<button class="choice-btn tile-' + (i % 4) + '" data-w="' + w.word + '"><span class="quiz-word">' + w.word + '</span></button>'
             ).join('') +
           '</div>';
       } else {
-        // sound2word: pilih tulisan dari kata-kata mirip
+        // sound2word: dengar kata → pilih tulisan (kata mirip)
         const sims = others.filter(w => w.word.length === target.word.length).slice(0, 2);
-        const extra = sims.length >= 2 ? sims : others.slice(0, 2 - sims.length);
-        choices = shuffle([target, ...extra]);
-        card = '<div class="quiz-prompt trace-font">❓</div>';
+        const extra = sims.length >= 2 ? sims : others.slice(0, 2 - sims.length).concat(sims);
+        const choices = shuffle([target, ...extra.slice(0, 2)]);
         area.innerHTML =
           '<p class="match-hint">' + mode.hint + '</p>' +
+          '<div class="quiz-prompt-row">' +
+            '<span class="quiz-prompt-ikon">🎧</span>' +
+            '<button class="btn btn-secondary sm" id="btn-kuis-listen">Dengar Lagi 🔊</button>' +
+          '</div>' +
           '<div class="choice-grid three">' +
             choices.map((w, i) =>
               '<button class="choice-btn tile-' + (i % 4) + '" data-w="' + w.word + '"><span class="quiz-word">' + w.word + '</span></button>'
             ).join('') +
           '</div>';
+        document.getElementById('btn-kuis-listen').addEventListener('click', () => AudioSys.speakItem(target.word, { flush: true }));
       }
 
       busy = true;
-      // Tombol 🔁 memakai flush (inisiatif anak — boleh memotong suara).
       const playPrompt = () => AudioSys.speakItem(target.word, { flush: true });
       window.lastGamePrompt = playPrompt;
-      // Auto-play ronde berikutnya TANPA flush → pujian yang masih berbunyi
-      // tidak dipotong oleh pertanyaan berikutnya (antrean serial).
       later(() => AudioSys.speakItem(target.word), 400);
       later(() => { busy = false; }, 1000);
 

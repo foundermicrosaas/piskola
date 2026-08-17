@@ -15,7 +15,7 @@
   /* Perbanyak kata tiap suku kata (3 → 4–5) supaya soal & jawaban bervariasi
      dan anak tidak bosan dengan pertanyaan yang sama. Tanpa kata 'musik'. */
   const WORDS = {
-    ba: [['baju', '👕'], ['balon', '🎈'], ['batu', '🪨'], ['bantal', '🛏️'], ['bangku', '🪑']],
+    ba: [['baju', '👕'], ['balon', '🎈'], ['batu', '🪨'], ['bantal', '🛌'], ['bangku', '🪑']],
     bi: [['biru', '🔵'], ['bintang', '⭐'], ['bibir', '👄'], ['biskuit', '🍪'], ['bibit', '🌱']],
     bu: [['buku', '📕'], ['burung', '🐦'], ['buah', '🍎'], ['bus', '🚌'], ['bumi', '🌍']],
     be: [['bebek', '🦆'], ['beras', '🍚'], ['bendera', '🚩'], ['benang', '🧵'], ['becak', '🛺']],
@@ -223,6 +223,27 @@
 
   function starRow(n) {
     return [1, 2, 3].map(i => '<span class="star ' + (i <= n ? 'on' : '') + '">⭐</span>').join('');
+  }
+
+  /* ==================== CANCEL ALL GAMES ====================
+     Dipanggil setiap kali startGame() dijalankan untuk memastikan
+     semua engine game sebelumnya dihentikan (timer, audio, render)
+     sehingga tidak ada game "zombie" yang menimpa layar game baru. */
+  function cancelAllGames() {
+    const engines = [
+      'GameTebak', 'GameCari', 'GameBalon', 'GamePasangan', 'GameMemory',
+      'GameKuis', 'GameHilang', 'GameSusun', 'GameMath'
+    ];
+    engines.forEach(name => {
+      if (window[name] && typeof window[name].cancel === 'function') {
+        try { window[name].cancel(); } catch (e) { /* abaikan */ }
+      }
+    });
+    // Bersihkan game-area dan pastikan overlay hasil tersembunyi
+    const area = document.getElementById('game-area');
+    if (area) area.innerHTML = '';
+    const overlay = document.getElementById('game-overlay');
+    if (overlay) overlay.classList.add('hidden');
   }
   function shuffle(arr) {
     const a = arr.slice();
@@ -472,16 +493,38 @@
   function wireRapor() {
     const btn = $('#btn-rapor');
     if (btn) btn.addEventListener('click', openRapor);
+    
     const btnClose = $('#btn-close-rapor');
     if (btnClose) btnClose.addEventListener('click', () => {
-      $('#rapor-modal').classList.remove('hidden');
       $('#rapor-modal').classList.add('hidden');
       AudioSys.sfx.tap();
     });
+    
     $('#rapor-modal').addEventListener('click', (e) => {
       if (e.target === $('#rapor-modal')) {
         $('#rapor-modal').classList.add('hidden');
       }
+    });
+    
+    // Tombol Bagikan Rapor (Social Proof)
+    const btnShare = $('#btn-share-rapor');
+    if (btnShare) btnShare.addEventListener('click', async () => {
+      const p = profile();
+      if (!p) return;
+      AudioSys.sfx.tap();
+      const r = Store.getReport(p.id);
+      const text = `Yeay! ${p.nama} sudah main ${r.plays} game di Piskola dengan ⭐ ${r.stars} bintang dan akurasi ${r.avg}%! 🔥 Streak ${p.streakCount || 0} hari berturut-turut!\n\nYuk ajak anak belajar membaca dengan cara yang seru di piskola.com 📚`;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: 'Rapor Belajar ' + p.nama + ' — Piskola', text });
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+      }
+      // Fallback: copy to clipboard
+      try { await navigator.clipboard.writeText(text); } catch (e2) {}
+      alert('Teks rapor sudah disalin!\n\nSilakan paste ke status WhatsApp atau Instagram Stories Anda.');
     });
   }
 

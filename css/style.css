@@ -335,7 +335,8 @@ a.back-btn { display: inline-flex; align-items: center; justify-content: center;
 }
 .letter-tile {
   font-family: inherit;
-  font-size: clamp(4rem, 22vw, 6rem);
+  /* auto font-size: kata pendek besar, kata panjang mengecil otomatis */
+  font-size: clamp(1.4rem, 7vw, 2.8rem);
   font-weight: 800;
   aspect-ratio: 1;
   border: none;
@@ -345,6 +346,13 @@ a.back-btn { display: inline-flex; align-items: center; justify-content: center;
   box-shadow: var(--shadow);
   cursor: pointer;
   transition: transform 0.1s;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  text-align: center;
+  line-height: 1.2;
 }
 .letter-tile:active { transform: scale(0.95); }
 .tile-0 { background: linear-gradient(180deg, #ffe9a8, #ffd76b); }
@@ -1006,5 +1014,24 @@ button { touch-action: manipulation; }
 }
 .match-col .match-item.trace-font.long-word {
   font-size: 1.8rem !important;
+}
+
+/* ---------- Game: Kuis — prompt row (sound2pic / sound2word) ---------- */
+.quiz-prompt-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+.quiz-prompt-ikon {
+  font-size: 3rem;
+  animation: pulse 1.5s infinite;
+}
+.quiz-word {
+  font-family: inherit;
+  font-size: clamp(1.2rem, 5vw, 2rem);
+  font-weight: 800;
+  color: var(--ink);
 }
 
